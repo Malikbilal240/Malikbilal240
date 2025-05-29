@@ -1,0 +1,87 @@
+Lab:
+====
+
+1) Tables and Tablespace 
+
+SQL> select * from dba_users where username='HR'
+SQL> select USERNAME, DEFAULT_TABLESPACE, TEMPORARY_TABLESPACE from dba_users where username='HR';
+
+SQL> select TABLESPACE_NAME from dba_tablespaces;
+
+TABLESPACE_NAME
+------------------------------
+SYSTEM
+SYSAUX
+UNDOTBS1
+TEMP
+USERS
+EXAMPLE
+
+SQL> select name from v$datafile;
+
+NAME
+--------------------------------------------------------------------------------
+/u01/app/oracle/oradata/DEVDB/system01.dbf
+/u01/app/oracle/oradata/DEVDB/sysaux01.dbf
+/u01/app/oracle/oradata/DEVDB/undotbs01.dbf
+/u01/app/oracle/oradata/DEVDB/users01.dbf
+/u01/app/oracle/oradata/DEVDB/example01.dbf
+
+
+col tablespace_name format a16;
+col file_name format a50;
+SELECT TABLESPACE_NAME, FILE_NAME, BYTES
+FROM DBA_DATA_FILES;
+
+
+TABLESPACE_NAME  FILE_NAME						 					BYTES
+---------------- -------------------------------------------------- ----------
+USERS		 	 /u01/app/oracle/oradata/DEVDB/users01.dbf	        5242880
+UNDOTBS1	 	 /u01/app/oracle/oradata/DEVDB/undotbs01.dbf	    52428800
+SYSAUX		 	 /u01/app/oracle/oradata/DEVDB/sysaux01.dbf	        524288000
+SYSTEM		 	 /u01/app/oracle/oradata/DEVDB/system01.dbf	        786432000
+EXAMPLE 	 	 /u01/app/oracle/oradata/DEVDB/example01.dbf	    328335360
+
+CREATE TABLESPACE TEST1 DATAFILE '/u01/app/oracle/oradata/DEVDB/test1.dbf' SIZE 1M;
+SELECT TABLESPACE_NAME, FILE_NAME, BYTES FROM DBA_DATA_FILES;
+
+drop tablespace TEST1 including contents;
+
+CREATE TABLESPACE TEST2 DATAFILE '/u01/app/oracle/oradata/DEVDB/test2.dbf' SIZE 1M;
+
+SELECT TABLESPACE_NAME, FILE_NAME, STATUS from DBA_DATA_FILES
+
+drop tablespace TEST2;
+
+SELECT TABLESPACE_NAME, FILE_NAME, STATUS from DBA_DATA_FILES;
+
+---local managed and dictinary managed
+
+dba_tablespaces and v$tablespace
+
+2) OMF:
+
+SQL> show parameter DB_CREATE_FILE_DEST
+NAME				     TYPE	 VALUE
+------------------------------------ ----------- ------------------------------
+db_create_file_dest		     string
+
+SQL> SELECT TABLESPACE_NAME, FILE_NAME, STATUS from DBA_DATA_FILES;
+
+SQL> ALTER SYSTEM SET DB_CREATE_FILE_DEST = '/u01/app/oracle/oradata/DEVDB/'; 
+SQL> CREATE TABLESPACE TEST3;
+
+ALTER TABLESPACE TEST3
+ADD DATAFILE '/u01/app/oracle/oradata/DEVDB/test3_2.dbf'
+size 100m
+
+SQL> SELECT TABLESPACE_NAME, FILE_NAME, STATUS from DBA_DATA_FILES;
+
+SQL> SELECT TABLESPACE_NAME, FILE_NAME, BYTES from DBA_DATA_FILES;
+
+alter database
+datafile
+'/u01/app/oracle/oradata/DEVDB/test3_2.dbf'
+resize 150M;
+
+SQL> SELECT TABLESPACE_NAME, FILE_NAME, BYTES from DBA_DATA_FILES;

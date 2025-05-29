@@ -1,0 +1,88 @@
+Lab:
+====
+
+1) Standalone Installation 11g(DB Home + DB creattion)
+
+11204 Oracle Home Installation in GUI Mode || OH Installation || Oracle Binaries Installation
+
+11204 Database Creation in GUI Mode
+
+2) Standalone Installation 12c(GI + DB Home + DB creattion)
+
+11204 Oracle Home Installation in GUI Mode || OH Installation || Oracle Binaries Installation
+
+11204 Database Creation in GUI Mode
+
+3) Standalone Installation 19c(GI + DB Home + DB creattion)
+
+Oracle Database 19c installation and configuration || Container and PDB creation on Linux 7
+
+4) Add userss and create groups and modify users 
+
+groupadd oinstall 
+groupadd asmdba 
+groupadd dba 
+groupadd asmadmin 
+groupadd racoper 
+
+useradd -g oinstall -d /home/oracle -s /bin/bash -c "oracle DB Owner" oracle
+usermod -a -G asmdba oracle
+usermod -a -G racoper oracle
+usermod -a -G dba oracle
+usermod -a -G asmadmin oracle
+
+Directory Creation:
+===================
+mkdir -p /u01/app/oracle/product/19.0.0.0/dbhome_1
+chmod 777 /u01
+chown -R oracle: /u01
+
+ls -ld /u01/app/oracle/product/19.0.0.0/dbhome_1
+
+Software staged:
+================
+DB Software: /u01/patches/database
+
+5) Install DB Home for standalone
+
+6) Creat DB
+
+7) Clone DB home from existing DB home.
+
+Manual Oracle Home Cloning || 11g Release 2 (11.2.0.4)
+=======================================================
+oracle$ tar -cvzf OH_BINARIES_BKP_$DATE_TIME.tar.gz /u01/app/oracle/product/11.2.0.4/dbhome_1/*
+
+oracle$ mkdir -p /u01/app/oracle/product/11.2.0.4/dbhome_2
+oracle$ cd /u01/app/oracle/product/11.2.0.4/dbhome_2
+oracle$ tar -xvzf OH_BINARIES_BKP_$DATE_TIME.tar.gz .
+
+oracle$ cd /u01/app/oracle/product/11.2.0.4/dbhome_2/clone/bin 
+oracle$ ./clone.pl ORACLE_HOME=/u01/app/oracle/product/11.2.0.4/dbhome_2
+
+cat /u01/app/oracInventory/Context/inventory.xml  
+/u01/app/oracle/product/11.2.0.4/dbhome_2/OPatch/opatch lsinventory
+
+8) Drop database
+
+database delete using dbca || drop database in GUI mode
+https://youtu.be/Bu4juZTKkjc
+
+Drop Database Delete Database manual method or GUI mothod
+https://youtu.be/3EWLBLie8-w
+
+9) Oracle Home installation using silent mode
+
+./runInstaller –silent –responsefile <filename>
+
+10) Manual method to create database
+
+https://dbaclass.com/article/how-to-create-a-database-manually/
+https://dbaclass.com/article/create-rac-database-manually/
+
+Exatra topics to discuss:
+=========================
+Standalone - Single instance installation 
+RAC - cluster (2 or 3 or 4)
+RAC one node - (2 or 3 or 4)
+

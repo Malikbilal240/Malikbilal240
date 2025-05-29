@@ -1,0 +1,85 @@
+Lab:
+====
+
+1) Show background process 
+ps -ef|grep smon
+ps -ef|grep DEVDB
+
+2) Show memory componets 
+SQL> show parameter pga
+SQL> show parameter sga
+SQL> select component, current_size from V$MEMORY_DYNAMIC_COMPONENTS;
+
+3) startup;
+>>> memory allocation while instance startup 
+
+4) create pfile from spfile;
+>>> show how much memory allocation to SGA shared componets from pfile
+
+5) Show show datafiles
+SQL> show parameter control
+
+6) Show database files and controlfile and log file locations
+SQL> select name from v$controlfile;
+SQL> SELECT name FROM v$datafile;
+SQL> SELECT member FROM v$logfile;
+
+7) pfile and SPfile location 
+$ORACLE_HOME/dbs
+
+Instance startup looks for SPFILE If not found >>> PFILE if not found >>> If not found it will through an error 
+
+pfile - init<Instance_Name>.ora >>> text file and human readable format
+
+SPfile - spfileDEVDB.ora >>> Binary file
+
+8) Password File:
+$ORACLE_HOME/dbs
+
+Password file - orapwDEVDB
+
+11: 
+Pssword is in local storage for both: ASM and DB 
+
+12c:
+Pssword is in local storage for: DB 
+Pssword is in DISKGROUP for: ASM 
+
+19c
+Pssword is in DISKGROUP for both: ASM and DB 
+
+9) Creating password file:
+
+orapwd file=orapwDEVDB password=Welcome2020# entries=5
+
+SQL> select * from v$pwfile_users;
+
+orapwd utility || Password File management in Oracle database
+
+10) file system structure
+ubuntu:
+tune2fs -l /dev/sda1 | grep Block
+
+OS X:
+diskutil info / | grep "Block Size"
+Device Block Size: 512 Bytes
+
+HP-UX:
+mkfs -m /dev/vg00/lvol5
+or
+fstyp -v /dev/vg00/lvol5 | grep f_frsize
+
+AIX:
+lsfs -q /dev/hd1
+
+Solaris : 
+perl -e '$a=(stat ".")[11]; print $a'
+8192
+
+logical structure where database can unserstand			- Physical structure where human can read
+===============================================			  ========================================
+Tablespace 				- (Group of Segments) 	- datafile 
+Segments 				- (Group of Exgtents)	-
+Extents					- (Group of DB blocks)	-
+DB block8K(*.db_block_size=8192) 	- 8 K		- 
+OS block 				- 512 bytes 		- 

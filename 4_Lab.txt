@@ -1,0 +1,56 @@
+Lab:
+====
+
+1) Standalone Installation:
+
+11.2.0.4 - Standalone Grid Infrastructure (GI) Installation + DB Home + Database Creation
+12.2.0.1 - Standalone Grid Infrastructure (GI) Installation + DB Home + Database Creation
+
+
+2) create oracleasm disks DATA and RECO using oracleasm 
+ll /dev/sd*
+fdisk /dev/sdb
+>>> n
+>>> p
+>>> 1
+>>> default
+>>> default
+>>> w
+
+ll /dev/sd*
+
+[root@rac3 dev]# oracleasm configure -i
+Default user to own the driver interface []: oracle
+Default group to own the driver interface []: oinstall
+Start Oracle ASM library driver on boot (y/n) [n]: y
+Scan for Oracle ASM disks on boot (y/n) [y]: y
+
+[root@rac3 dev]# oracleasm init
+[root@rac3 dev]# oracleasm createdisk DATA /dev/sdb1 
+[root@rac3 dev]# oracleasm listdisks
+
+[root@rac3 dev]# mount -t vboxsf Softwares /Softwares/
+
+[root@rac3 dev]# df -h
+
+3) Create RECO diskgroup
+
+Create ASM RECO diskgroup using ASMCA || Database administration - ASMCMD
+https://youtu.be/7M0QfMKTfCQ
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

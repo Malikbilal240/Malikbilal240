@@ -1,0 +1,100 @@
+Lab:
+=====
+
+1) Creating Users:
+
+create user test1 identified by test1;
+grant connect to test1;
+
+create user test2 identified by test2;
+grant connect to test2;
+
+create user test3 identified by test3;
+grant connect to test3;
+
+--- create user test identified by test default tablesapce user;
+--- grant dba to test;
+--- CREATE USER odb PROFILE "DEFAULT" IDENTIFIED BY ODB DEFAULT TABLESPACE "USERS" TEMPORARY TABLESPACE "TEMP01" QUOTA UNLIMITED ON "USERS" ACCOUNT UNLOCK;
+--- CREATE USER odb PROFILE "DEFAULT" IDENTIFIED BY ODB DEFAULT TABLESPACE "USERS" TEMPORARY TABLESPACE "TEMP" QUOTA UNLIMITED ON "USERS" ACCOUNT UNLOCK;
+
+2) Password reset / user exists or not:
+select username, account_status from dba_users where username='test2';
+USERNAME                       ACCOUNT_STATUS
+------------------------------ --------------------------------
+test2                          EXPIRED
+
+alter user test2 identified by Welcome2020;
+
+Assign Unlimited quota to user:
+alter user odb quota unlimited on users;
+
+Drop database user:
+drop user odb cascade;
+
+3) Roles:
+--- SELECT * FROM dba_role_privs WHERE grantee IN ('OBIA_DRM');
+--- select privilege from dba_sys_privs where grantee = 'RESOURCE';
+--- select privilege from dba_sys_privs where grantee = 'CONNECT';
+
+CREATE ROLE TEST_ROLE;
+
+CREATE ROLE TEST_ROLE2 IDENTIFIED BY TEST_ROLE2;
+
+SELECT * FROM DBA_ROLES where role='TEST_ROLE2';
+
+GRANT create, select, insert, update, delete ON HR.EMPLOYEES TO TEST_ROLE2;
+GRANT  select, insert, update, delete ON HR.EMPLOYEES TO TEST_ROLE;
+
+grant TEST_ROLE to TEST1;
+grant TEST_ROLE to TEST2;
+
+conn TEST1/test1
+select count(*) from HR.EMPLOYEES;
+
+conn TEST2/test2
+select count(*) from HR.EMPLOYEES;
+
+conn TEST3/test3
+select count(*) from HR.EMPLOYEES;
+
+4) Profiles
+
+SELECT username, profile FROM dba_users;
+
+SELECT * FROM dba_profiles WHERE PROFILE = 'DEFAULT' ORDER BY resource_type, resource_name;
+
+
+CREATE PROFILE TEST_USERS LIMIT 
+SESSIONS_PER_USER          UNLIMITED
+CPU_PER_SESSION            UNLIMITED 
+CPU_PER_CALL               3000 
+CONNECT_TIME               15;
+
+CREATE USER test4 IDENTIFIED BY test4 PROFILE TEST_USERS;
+
+SELECT username, profile FROM dba_users WHERE username like 'TEST%';
+
+
+5) QUOTA:
+
+Assign Unlimited quota to user:
+
+SELECT * FROM user_ts_quotas;
+
+alter user odb quota unlimited on users;
+
+ALTER USER test1 QUOTA 10M ON users;
+ALTER USER test2 QUOTA unlimited ON users;
+
+grant create table to test1;
+
+conn test1/test1;
+create table T1(No number);
+insert into T1(No) values(1);
+insert into T1(No) values(2);
+insert into T1(No) values(3);
+insert into T1(No) values(4);
+
+select * from T1;
+
+SELECT * FROM user_ts_quotas;

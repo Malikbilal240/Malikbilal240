@@ -1,0 +1,64 @@
+Lab:
+====
+1) Initfile and parameter file:
+
+SQL> create pfile from spfile;
+SQL> create spfile from pfile;
+
+set pages 1000
+set lines 1000
+col name for a30
+col value for a30
+SELECT name , value FROM V$PARAMETER;
+
+SHOW PARAMETER SHARED_POOL_SIZE
+
+2) Static and Dynamic paramaters
+
+Static and Dynamic paramaters:
+using ALTER SESSION and ALTER SYSTEM commands
+
+set pages 1000
+set lines 200
+col name for a35
+col value for a25
+select name,value,ISSES_MODIFIABLE,ISSYS_MODIFIABLE from v$parameter;
+
+SCOPE=memory|SPFILE|Both
+
+select ISSYS_MODIFIABLE from v$parameter where name like '%utl_file_dir%';
+select ISSYS_MODIFIABLE from v$parameter where name like '%log_archive_dest_2';
+
+alter system set processes=200 scope=spfile;
+alter system set open_cursors=500 scope=both;
+alter system set awr_snapshot_time_offset=2 scope=both;
+
+SQL> SELECT SYSDATE FROM dual;
+ALTER SESSION SET NLS_DATE_FORMAT ='mon dd yyyy';
+SQL> SELECT SYSDATE FROM dual;
+
+
+How to identify any parameter as static or dynamic using v$aparameter || ISSYS_MODIFIABLE
+
+
+3) startup and shutdown
+Startup
+SQL> startup nomount;  		>>>>>>>> parameter file 
+SQL> alter database mount; 	>>>>>>>> Controlefile 
+SQL> alter database open;	>>>>>>>> Datafile and redolog file 
+
+Shutdown:
+Abort
+Immediate 
+Transactional 
+Normal
+
+SQL> shutdown Normal;
+SQL> shutdown Transactional;
+SQL> shutdown Immediate;
+SQL> shutdown Abort;
+
+4) Alert log:
+locat alert_DEVDB.log
+tail -f alert_DEVDB.log 
+
