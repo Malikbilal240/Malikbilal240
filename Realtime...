@@ -1,0 +1,120 @@
+STEPS TO ENABLE FLASHBACK..AND GUARANTEE RESTOREPOINT 
+SQL> alter system set db_recovery_file_dest_size=50G scope=both; 
+System altered.
+ 
+SQL> alter system set db_recovery_file_dest='/oraexp/fra' scope=both;
+ 
+System altered.
+ 
+***update the retention per request, we usually make it for 48 hours i.e 2880***
+ 
+SQL> show parameter db_flashback_retention;
+NAME                                TYPE        VALUE
+------------------------------------ ----------- ------------------------------
+db_flashback_retention_target       integer     1440
+
+Take archive backup.
+We also verify last L0, L1 backups if those were successful and then execute the archive backup once
+
+ RUN
+{
+allocate channel ch1 type disk format '/efs-ges-backup-east1a/ges-prod/usawstax05370/GESAPPR1/ARCHIVELOGS/al_%t_%s_p%p';
+sql 'alter system archive log current';
+sql 'alter database backup controlfile to trace';
+backup archivelog all delete all input;
+RELEASE channel ch1;
+}
+
+exit;
+
+alter database flashback on;
+ 
+Database altered.
+ 
+***capture and save the current_scn and sysdate for flashback(if needed)***
+Below are the sample o/p
+SQL> select current_scn from v$database;
+ 
+CURRENT_SCN
+-----------
+ 129432124
+ 
+SQL> select to_char(sysdate,'DD MM YYYY HH24:MI:SS') from dual;
+ 
+TO_CHAR(SYSDATE,'DD
+-------------------
+03 04 2020 08:48:13
+ 
+ ======================================================
+SELECT flashback_on FROM v$database;
+ 
+
+To ensure we can roll back if needed, create a guaranteed restore point:  
+ 
+CREATE RESTORE POINT Before_deployment GUARANTEE FLASHBACK DATABASE;
+ 
+This ensures Oracle keeps all necessary logs.  
+ 
+ 
+7. Confirm the Restore Point Exists  
+ 
+Verify that the restore point was successfully created:  
+ 
+SELECT NAME, SCN, TIME, GUARANTEE_FLASHBACK_DATABASE
+FROM V$RESTORE_POINT;
+-----------------------------#############################
+STEPS FOR FLASHBACK ENABLE IN STANDBY DB 
+
+SQL> alter system set db_recovery_file_dest_size=50G scope=both;
+ 
+System altered.
+ 
+SQL> alter system set db_recovery_file_dest='/oraexp/fra' scope=both;
+ 
+System altered.
+ 
+***update the retention per request, we usually make it for 48 hours i.e 2880***
+ 
+SQL> show parameter db_flashback_retention;
+NAME                                TYPE        VALUE
+------------------------------------ ----------- ------------------------------
+
+db_flashback_retention_target       integer     1440
+
+SQL>ALTER DATABASE RECOVER MANAGED STANDBY DATABASE CANCEL;
+
+SQL> alter database flashback on;
+
+***capture and save the current_scn and sysdate for flashback(if needed)***
+Below are the sample o/p
+SQL> select current_scn from v$database;
+ 
+CURRENT_SCN
+-----------
+ 129432124
+ 
+SQL> select to_char(sysdate,'DD MM YYYY HH24:MI:SS') from dual;
+ 
+TO_CHAR(SYSDATE,'DD
+-------------------
+03 04 2020 08:48:13
+SQL>ALTER DATABASE RECOVER MANAGED STANDBY DATABASE DISCONNECT FROM SESSION;
+ 
+We also verify last L0, L1 backups if those were successful and then execute the archive backup once
+ ======================================================
+ 
+SELECT flashback_on FROM v$database;
+
+To ensure we can roll back if needed, create a guaranteed restore point:  
+ 
+CREATE RESTORE POINT Before_deployment GUARANTEE FLASHBACK DATABASE;
+ 
+This ensures Oracle keeps all necessary logs.  
+  
+7. Confirm the Restore Point Exists  
+ 
+Verify that the restore point was successfully created:  
+==================================================================================
+ALTER DATABASE FLASHBACK OFF;
+
+DROP RESTORE POINT Before_deployment;
