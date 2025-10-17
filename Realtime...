@@ -1072,6 +1072,134 @@ Starting instance "orcl"...
 ORACLE instance started.
 Database mounted.
 Switchover succeeded, new primary is "orclstby"
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+datagurad command and block change tracking comm..
+
+select name,open_mode,database_role from v$database;
+
+>to check log gaps between primary and standby databases...
+in primary.
+archive log list;
+
+in standby database.
+select max(sequence#) from v$archived_log where applied= 'YES';
+
+select process,client_process,status,thread#,sequence#,block#,blocks from v$managed_standby;
+has context menu
+shut immediate: 
+startup nomount;
+alter database mount standby database;
+
+alter database recover managed standby database disconnect from session;
+
+ALTER DATABASE RECOVER MANAGED STANDBY DATABASE CANCEL;
+
+=============================================
+
+scp p37262172_190000_Linux-x86-64.zip p6880880_190000_Linux-x86-64.zip oradba@USHDC8522:/oraexp/EMStage/Jan2025;
+USAWSTAX05784 oraias...
+Elc;30BtpElc;30Btp
+
+===============================
+BCT commands.
+
+SELECT * FROM V$BLOCK_CHANGE_TRACKING;
+ALTER DATABASE ENABLE BLOCK CHANGE TRACKING USING FILE '/opt/data/EMASYMP/rman_change_track.dbf';
+alter database disable block change tracking;
+
+
+select * from USER_ROLE_PRIVS where USERNAME='CALRAD';
+ 
+select privilege 
+
+from dba_sys_privs 
+
+where grantee='CALRAD' 
+
+order by 1;
+ =============================
+===================================================================
+https://teams.microsoft.com/l/message/19:7e361649996f4f14b68699a70e89940c@thread.v2/1730212184156?context=%7B%22contextType%22%3A%22chat%22%7D
+
+
+show parameter archive; ---in sdba 
+
+check log_arc_dest _1 and _2 must be enable 
+
+alter system set log_archive_dest_state_2=ENABLE;
+ 
+and if still issus 
+
+
+dgmgrl /
+edit database 'EMASYMP_GDW' set state=online;
+ 
+edit database 'EMASYMP_GDE' set state=apply-on;
+ 
+ 
+ 
+SELECT INSTANCE_NAME, STATUS, DATABASE_STATUS FROM V$INSTANCE;
+ 
+select name,open_mode from v$database;
+chec k with secondary ta 
+
+and prumary ---alter system switch logfile; to redo files happen in secondary
+
+To check both primary and standby are in sync
+Hi Team,
+
+Data guard status is in sync now.
+
+DGMGRL> show configuration;
+
+Configuration - SYMP_DG
+
+  Protection Mode: MaxPerformance
+  Members:
+  SYMP_HDC - Primary database
+    SYMP_NDC - Physical standby database
+
+Fast-Start Failover:  Disabled
+
+Configuration Status:
+SUCCESS   (status updated 29 seconds ago)
+
+ ==========================================
+ 
+[usdhc8915 oraias CT]> python Oracle19.0-Upgrade-V1.py
+exec(): 0509-036 Cannot load program python because of the following errors:
+        0509-150   Dependent module /u01/app/oracle/product/12.2.0.1/db_1/lib/libexpat.a(libexpat.so.1) could not be loaded.
+        0509-152   Member libexpat.so.1 is not found in archive
+
+To run the python script first we need to export this command .\\
+export LIBPATH=/opt/freeware/lib:$LIBPATH
+=====================================
+status gather command.
+execute dbms_stats.gather_table_stats(ownname => 'GAE17', tabname =>'TEMP_PARAM_POLICY', estimate_percent =>DBMS_STATS.AUTO_SAMPLE_SIZE, method_opt => 'FOR ALL COLUMNS SIZEAUTO');
+
+========================================================================================================
+checking account locks
+
+col USERNAME for a15
+SELECT username, account_status, created, lock_date, expiry_date
+  FROM dba_users
+WHERE account_status != 'LOCK';SQL>   2    3
+
+find /u01/app/oracle/admin/TOOLSA/adump -type f -mtime +7 -name '*.aud' -exec rm -f {} \;
+
+/u01/app/oracle/diag/rdbms/orgprod1_e1ap/ORGPROD1/trace
+find /u01/app/oracle/diag/rdbms/orgprod1_e1ap/ORGPROD1/trace -type f -mtime +5 -name '*.aud' -exec rm -f {} \;
+
+/u01/app/oracle/diag/rdbms/orgprod1_e1ap/ORGPROD1/trace
+
+
+find *.trc -mtime +2 -exec rm {} \;
+find *.trm -mtime +2 -exec rm {} \;
+find /u01/app/oracle/admin/PTST1/adump -type f -mtime +2 -name '*.aud' -exec rm -f {} \;
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
+
 
 
 
