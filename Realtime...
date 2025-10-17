@@ -118,3 +118,9 @@ Verify that the restore point was successfully created:
 ALTER DATABASE FLASHBACK OFF;
 
 DROP RESTORE POINT Before_deployment;
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+command to check sessions..
+
+SELECT username, osuser, machine, program, status, logon_time
+FROM v$session
+WHERE username IS NOT NULL;
