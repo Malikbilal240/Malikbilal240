@@ -124,3 +124,968 @@ command to check sessions..
 SELECT username, osuser, machine, program, status, logon_time
 FROM v$session
 WHERE username IS NOT NULL;
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+dataguard configuration steps...
+
+http://veera0109.blogspot.in/2014/01/rman-active-duplication-asm-to-asm.html
+
+On Primary
+###########
+
+1) Change the db_unique_name of primary to "SYMQ_HDC"
+
+SQL> alter system set db_unique_name='SYMQ_HDC' scope=spfile;
+
+System altered.
+
+SQL> shut immediate;
+Database closed.
+Database dismounted.
+ORACLE instance shut down.
+SQL> startup;
+
+
+
+2) Make sure the listener entry of primary has below details
+(If it doesn't have, change the details accordingly and reload the listener)
+
+SID_LIST_LISTENER =
+   (SID_LIST =
+     (SID_DESC =
+         (SID_NAME = PLSExtProc)
+         (ORACLE_HOME = /u01/app/oracle/product/19.0/db_1)
+        (PROGRAM = extproc)
+     )
+     (SID_DESC =
+        (SID_NAME = CPAP)
+        (ORACLE_HOME = /u01/app/oracle/product/19.0/db_1)
+        (GLOBAL_DBNAME=CPAP_E1BS.us.deloitte.com)
+     )
+   )
+
+OUTBOUND_CONNECT_TIMEOUT_LISTENER = 20
+
+LISTENER =
+  (DESCRIPTION_LIST =
+    (DESCRIPTION =
+      (ADDRESS = (PROTOCOL = TCP)(HOST = dbavm.mahi.com)(PORT = 1521))
+      (ADDRESS = (PROTOCOL = IPC)(KEY = EXTPROC1521))
+    )
+  )
+
+ADR_BASE_LISTENER = /u01/app/oracle
+
+-----------------------------------
+lsnrctl stop
+lsnrctl start
+-----------------------------------
+SQL> select name, force_logging from v$database;
+
+NAME      FOR
+--------- ---
+ORCL      NO
+
+SQL> alter database force logging;
+
+Database altered.
+
+SQL> select name, force_logging from v$database;
+
+NAME      FOR
+--------- ---
+ORCL      YES
+
+SQL> alter system set standby_file_management = 'AUTO';
+
+System altered.
+
+
+2) Create standby redo logfiles on primary
+
+SQL> select GROUP#,THREAD#,MEMBERS,BYTES FROM V$LOG;
+
+    GROUP#    THREAD#    MEMBERS      BYTES
+---------- ---------- ---------- ----------
+         1          1          1   52428800
+         2          1          1   52428800
+         3          1          1   52428800
+
+
+SQL> select group#, member from v$logfile;
+
+    GROUP#
+----------
+MEMBER
+--------------------------------------------------------------------------------
+         3
+/u01/app/oradata/orcl/redo03.log
+
+         2
+/u01/app/oradata/orcl/redo02.log
+
+         1
+/u01/app/oradata/orcl/redo01.log
+
+
+
+SQL> ALTER DATABASE ADD STANDBY LOGFILE ('/u10/oraredo/SYMQ/sredo01.log') SIZE 52428800;
+
+Database altered.
+
+SQL> ALTER DATABASE ADD STANDBY LOGFILE ('/u11/oraredo/SYMQ/sredo02.log') SIZE 52428800;
+
+Database altered.
+
+SQL> ALTER DATABASE ADD STANDBY LOGFILE ('/u12/oraredo/SYMQ/sredo03.log') SIZE 52428800;
+
+Database altered.
+
+ALTER DATABASE ADD STANDBY LOGFILE ('/u12/oraredo/SYMQ/sredo04.log') SIZE 52428800;
+
+
+SQL> ALTER DATABASE ADD STANDBY LOGFILE ('/u01/app/oradata/orcl/sredo05.log') SIZE 52428800;
+
+Database altered.
+
+
+
+ALTER DATABASE ADD STANDBY LOGFILE GROUP 7('/opt/rdo/CPAP/sredo07a.log','/opt/rdo/CPAP/sredo07b.log') SIZE 4096M;
+
+
+2) Do the following parameter changes in primary
+
+SQL> alter system set log_archive_config='DG_CONFIG=(SYMQ_HDC,SYMQ_NDC)';
+
+System altered.
+
+if two standby's ..... log_archive_config='DG_CONFIG=(GESAPPR1_E1AP,GESAPPR1_E1BS,GESAPPR1_W1AS)';
+
+
+
+SQL> alter system set log_archive_dest_2='SERVICE=SYMQ_NDC ASYNC VALID_FOR=(ONLINE_LOGFILES,PRIMARY_ROLE) DB_UNIQUE_NAME=SYMQ_NDC';
+
+System altered.
+
+if two standby's set log_archive_dest_3='SERVICE=CLSP_W1AS LGWR ASYNC VALID_FOR=(ONLINE_LOGFILES,PRIMARY_ROLE) DB_UNIQUE_NAME=CLSP_W1AS' scope=both;
+
+alter system set log_archive_dest_3='SERVICE=CLSP_W1AS LGWR ASYNC VALID_FOR=(ONLINE_LOGFILES,PRIMARY_ROLE) DB_UNIQUE_NAME=CLSP_W1AS' scope=both;
+
+SQL> alter system set log_archive_dest_state_2=ENABLE;
+
+System altered.
+
+SQL> alter system set fal_client=CPAP_E1AP;
+
+System altered.
+
+SQL> alter system set fal_server=SYMQ_NDC;
+
+System altered.
+
+SQL> alter system set standby_file_management=AUTO;
+
+System altered.
+
+SQL> alter system set service_names='CLSP, CLSP_E1AP' scope=both;
+
+System altered.
+
+SQL> alter system set db_file_name_convert='/opt/data/CLSP','/opt/data/CLSP','/opt/idx/CLSP','/opt/idx/CLSP' scope=spfile;
+
+System altered.
+
+SQL> alter system set log_file_name_convert='/opt/rdo/CLSP','/opt/rdo/CLSP' scope=spfile;
+
+System altered.
+
+
+3) Create the tns entry for standby on primary
+
+orclstby.mahi.com =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = dbatest.mahi.com)(PORT = 1521))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = orclstby.mahi.com)(UR=A)
+    )
+  )
+
+SYMQ_NDC.US.DELOITTE.COM =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = 10.28.40.206)(PORT = 1521))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = SYMQ_NDC.US.DELOITTE.COM)(UR=A)
+    )
+  )
+
+
+4) Copy tnsnames.ora, listener.ora, pwd file and init.ora to standby site. After copying edit listener.ora on standby to reflect the new host name and then start the listener
+
+[usdhc8888 oraxdp XDPP]> pwd
+/u01/app/oracle/product/11.2.0/db/network/admin
+[usdhc8888 oraxdp XDPP]> scp tnsnames.ora dbatest:/u01/app/oracle/product/11.2.0/db/network/admin
+tnsnames.ora                                                                                                                          100%   55KB  54.8KB/s   00:00
+
+[usdhc8888 oraxdp XDPP]> scp listener.ora dbatest:/u01/app/oracle/product/11.2.0/db/network/admin
+listener.ora                  
+
+
+cd $ORACLE_HOME/dbs
+[usdhc8888 oraxdp XDPP]> scp orapworcl dbatest:/u01/app/oracle/product/11.2.0/db/dbs
+oraxdp@usdhe8888's password:
+orapworcl       
+
+SQL> create pfile='$ORACLE_HOME/dbs/initorclstby.ora' from spfile;
+
+File created.
+
+[oracle@dbavm dbs]$ scp initorclstby.ora dbatest:/u01/app/oracle/product/11.2.0/db/dbs
+initorclstby.ora
+
+[oracle@dbavm dbs]$
+
+
+5) After copying change the initorclstby.ora file on standby site with the following:
+
+*.db_file_name_convert='/u01/app/oradata/orcl','/u01/app/oradata/orcl'
+*.db_unique_name='orclstby'
+*.fal_client='orclstby'
+*.fal_server='orclprmy'
+*.log_archive_config='DG_CONFIG=(orclstby,orclprmy)'
+*.log_archive_dest_2='SERVICE=orclprmy ASYNC VALID_FOR=(ONLINE_LOGFILES,PRIMARY_ROLE) DB_UNIQUE_NAME=orclprmy'
+*.log_file_name_convert='/u01/app/oradata/orcl','/u01/app/oradata/orcl'
+*.service_names='orcl, orclstby'
+
+and create the required directories as per init.ora (i.e. adump, diag, cdump etc...)
+Ex:-
+
+[oracle@dbatest ~]$ mkdir -p /u01/app/oracle/admin/orcl/adump
+
+create FRA directory if your primary is FRA mode
+
+[oracle@dbatest ~]$ mkdir -p /u01/app/oracle/fra
+
+create the directory for data files
+
+[oracle@dbatest ~]$ mkdir -p /u01/app/oracle/oradata/orcl
+
+
+6) On standby site edit the listener.ora with below and start the listener
+
+SID_LIST_LISTENER =
+   (SID_LIST =
+     (SID_DESC =
+         (SID_NAME = PLSExtProc)
+         (ORACLE_HOME = /u01/app/oracle/product/11.2.0/db)
+        (PROGRAM = extproc)
+     )
+     (SID_DESC =
+        (SID_NAME = CPAP)
+        (ORACLE_HOME = /u01/app/oracle/product/11.2.0/db)
+        (GLOBAL_DBNAME=orclstby.mahi.com)
+     )
+   )
+
+OUTBOUND_CONNECT_TIMEOUT_LISTENER = 20
+
+LISTENER =
+  (DESCRIPTION_LIST =
+    (DESCRIPTION =
+      (ADDRESS = (PROTOCOL = TCP)(HOST = dbatest.mahi.com)(PORT = 1521))
+      (ADDRESS = (PROTOCOL = IPC)(KEY = EXTPROC1521))
+    )
+  )
+
+ADR_BASE_LISTENER = /u01/app/oracle
+
+------------------
+lsnrctl start
+------------------
+
+6) Startup the standby instance in no mount stage
+[oracle@dbatest ~]$ export ORACLE_HOME=/u01/app/oracle/product/11.2.0/db
+[oracle@dbatest ~]$ export ORACLE_SID=orcl
+
+[oracle@dbatest ~]$ sqlplus "/as sysdba"
+
+SQL> startup nomount pfile='/u01/app/oracle/product/11.2.0/db/dbs/initorclstby.ora';
+ORACLE instance started.
+
+Total System Global Area 3156725760 bytes
+Fixed Size                  2223776 bytes
+Variable Size            1795162464 bytes
+Database Buffers         1342177280 bytes
+Redo Buffers               17162240 bytes
+SQL> create spfile from pfile='/u01/app/oracle/product/11.2.0/db/dbs/initorclstby.ora';
+
+File created.
+SQL> shut immediate;
+ORA-01507: database not mounted
+
+
+ORACLE instance shut down.
+SQL> startup nomount;
+ORACLE instance started.
+
+Total System Global Area 3156725760 bytes
+Fixed Size                  2223776 bytes
+Variable Size            1795162464 bytes
+Database Buffers         1342177280 bytes
+Redo Buffers               17162240 bytes
+SQL> show parameter spfile;
+
+NAME                                 TYPE
+------------------------------------ --------------------------------
+VALUE
+------------------------------
+spfile                               string
+/u01/app/oracle/product/11.2.0
+/db/dbs/spfileORCL.ora
+
+
+
+
+7) Execute the below command on primary DB server to Duplicate the target DB to standby using RMAN
+
+
+[oracle@dbavm dbs]$ rman target sys/sys@orclprmy auxiliary sys/sys@orclstby
+
+Recovery Manager: Release 11.2.0.3.0 - Production on Sun Mar 9 00:32:30 2014
+
+Copyright (c) 1982, 2011, Oracle and/or its affiliates.  All rights reserved.
+
+connected to target database: ORCL (DBID=1369057120)
+connected to auxiliary database: ORCL (not mounted)
+
+RMAN> DUPLICATE TARGET DATABASE FOR STANDBY FROM ACTIVE DATABASE DORECOVER NOFILENAMECHECK;
+
+8) Shutdown and startup the database on standby site and start the recovery
+
+SQL>shut immediate;
+
+
+SQL> startup nomount;
+ORACLE instance started.
+
+Total System Global Area 3156725760 bytes
+Fixed Size                  2223776 bytes
+Variable Size            1795162464 bytes
+Database Buffers         1342177280 bytes
+Redo Buffers               17162240 bytes
+SQL> alter database mount standby database;
+
+Database altered.
+
+SQL> alter database recover managed standby database disconnect from session;
+
+Database altered.
+
+
+########################################################################################################
+
+Primary PFILE Ex:-
+
+GGSRC.__db_cache_size=369098752
+GGSRC.__java_pool_size=33554432
+GGSRC.__large_pool_size=16777216
+GGSRC.__oracle_base='/u01/app/oracle'#ORACLE_BASE set from environment
+GGSRC.__pga_aggregate_target=536870912
+GGSRC.__sga_target=1040187392
+GGSRC.__shared_io_pool_size=0
+GGSRC.__shared_pool_size=587202560
+GGSRC.__streams_pool_size=16777216
+*._shared_io_pool_size=0
+*.audit_file_dest='/u01/app/oracle/admin/GGSRC/adump'
+*.audit_trail='db'
+*.compatible='11.2.0.0.0'
+*.control_files='/u02/oradata/GGSRC/control01.ctl','/u03/oradata/GGSRC/control02.ctl','/u04/oradata/GGSRC/control03.ctl'
+*.db_block_size=8192
+*.db_cache_size=318767104
+*.db_domain='US.DELOITTE.COM'
+*.db_keep_cache_size=0
+*.db_name='GGSRC'
+*.db_recycle_cache_size=0
+*.db_unique_name='GGSRCPRMY'
+*.diagnostic_dest='/u01/app/oracle'
+*.dispatchers='(PROTOCOL=TCP) (SERVICE=GGSRCXDB)'
+*.fal_client='GGSRCPRMY'
+*.fal_server='GGSRCSTBY'
+*.java_pool_size=16777216
+*.large_pool_size=16777216
+*.log_archive_config='DG_CONFIG=(GGSRCPRMY,GGSRCSTBY)'
+*.log_archive_dest_1='LOCATION=/archive/GGSRC'
+*.log_archive_dest_2='SERVICE=GGSRCSTBY ASYNC VALID_FOR=(ONLINE_LOGFILES,PRIMARY_ROLE) DB_UNIQUE_NAME=GGSRCSTBY REOPEN=30'
+*.log_archive_dest_state_2='ENABLE'
+*.log_archive_format='GGSRC_%t_%s_%r.arc'
+*.log_file_name_convert='/u10/oradata/GGSRC','/u10/oradata/GGSRC','/u11/oradata/GGSRC','/u11/oradata/GGSRC','/u12/oradata/GGSRC','/u12/oradata/GGSRC','/u13/oradata/GGSRC','/u13/oradata/GGSRC'
+*.memory_max_target=2147483648
+*.memory_target=1577058304
+*.open_cursors=300
+*.optimizer_use_invisible_indexes=FALSE
+*.pga_aggregate_target=0
+*.processes=150
+*.recyclebin='OFF'
+*.remote_login_passwordfile='EXCLUSIVE'
+*.service_names='GGSRC, GGSRCPRMY'
+*.sga_target=0
+*.shared_pool_size=150994944
+*.standby_file_management='AUTO'
+*.streams_pool_size=16777216
+*.undo_retention=86400
+*.undo_tablespace='UNDOTBS1'
+
+
+
+
+Standby PFILE Ex:-
+
+GGSRC.__db_cache_size=369098752
+GGSRC.__java_pool_size=33554432
+GGSRC.__large_pool_size=16777216
+GGSRC.__oracle_base='/u01/app/oracle'#ORACLE_BASE set from environment
+GGSRC.__pga_aggregate_target=536870912
+GGSRC.__sga_target=1040187392
+GGSRC.__shared_io_pool_size=0
+GGSRC.__shared_pool_size=587202560
+GGSRC.__streams_pool_size=16777216
+*._shared_io_pool_size=0
+*.audit_file_dest='/u01/app/oracle/admin/GGSRC/adump'
+*.audit_trail='db'
+*.compatible='11.2.0.0.0'
+*.control_files='/u02/oradata/GGSRC/control01.ctl','/u03/oradata/GGSRC/control02.ctl','/u04/oradata/GGSRC/control03.ctl'
+*.db_block_size=8192
+*.db_cache_size=318767104
+*.db_domain='US.DELOITTE.COM'
+*.db_keep_cache_size=0
+*.db_name='GGSRC'
+*.db_recycle_cache_size=0
+*.db_unique_name='GGSRCSTBY'
+*.diagnostic_dest='/u01/app/oracle'
+*.dispatchers='(PROTOCOL=TCP) (SERVICE=GGSRCXDB)'
+*.fal_client='GGSRCSTBY'
+*.fal_server='GGSRCPRMY'
+*.java_pool_size=16777216
+*.large_pool_size=16777216
+*.log_archive_config='DG_CONFIG=(GGSRCSTBY,GGSRCPRMY)'
+*.log_archive_dest_1='LOCATION=/archive/GGSRC'
+*.log_archive_dest_2='SERVICE=GGSRCPRMY ASYNC VALID_FOR=(ONLINE_LOGFILES,PRIMARY_ROLE) DB_UNIQUE_NAME=GGSRCPRMY'
+*.log_archive_dest_state_2='ENABLE'
+*.log_archive_format='GGSRC_%t_%s_%r.arc'
+*.log_file_name_convert='/u10/oradata/GGSRC','/u10/oradata/GGSRC','/u11/oradata/GGSRC','/u11/oradata/GGSRC','/u12/oradata/GGSRC','/u12/oradata/GGSRC','/u13/oradata/GGSRC','/u13/oradata/GGSRC'
+*.memory_max_target=2147483648
+*.memory_target=1577058304
+*.open_cursors=300
+*.optimizer_use_invisible_indexes=FALSE
+*.pga_aggregate_target=0
+*.processes=150
+*.recyclebin='OFF'
+*.remote_login_passwordfile='EXCLUSIVE'
+*.service_names='GGSRC, GGSRCSTBY'
+*.sga_target=0
+*.shared_pool_size=150994944
+*.standby_file_management='AUTO'
+*.streams_pool_size=16777216
+*.undo_retention=86400
+*.undo_tablespace='UNDOTBS1'
+
+
+
+#########################################################################################
+
+Change the Protection Modes:-
+###########################
+
+SERVICE=ORCLSTBY ASYNC VALID_FOR=(ONLINE_LOGFILES,PRIMARY_ROLE) DB_UNIQUE_NAME=ORCLSTBY
+
+1) To change to maximum availability:-
+
+(Execute below commands on primary database)
+
+SQL> ALTER SYSTEM SET LOG_ARCHIVE_DEST_2='SERVICE=ORCLSTBY AFFIRM SYNC VALID_FOR=(ONLINE_LOGFILES,PRIMARY_ROLE) DB_UNIQUE_NAME=ORCLSTBY';
+
+System altered.
+
+SQL> alter database set standby database to maximize availability;
+
+Database altered.
+
+SQL> select protection_mode from v$database;
+
+PROTECTION_MODE
+--------------------
+MAXIMUM AVAILABILITY
+
+2) To change back to maximum performance:-
+(Execute below commands on primary database)
+
+SQL> ALTER SYSTEM SET LOG_ARCHIVE_DEST_2='SERVICE=ORCLSTBY NOAFFIRM ASYNC VALID_FOR=(ONLINE_LOGFILES,PRIMARY_ROLE) DB_UNIQUE_NAME=ORCLSTBY';
+
+System altered.
+
+SQL> ALTER DATABASE SET STANDBY DATABASE TO MAXIMIZE PERFORMANCE;
+
+Database altered.
+
+SQL> select protection_mode from v$database;
+
+PROTECTION_MODE
+--------------------
+MAXIMUM PERFORMANCE
+
+
+3) To change to maximum protection:-
+(Execute below commands on primary database)
+
+SQL> ALTER SYSTEM SET LOG_ARCHIVE_DEST_2='SERVICE=ORCLSTBY AFFIRM SYNC VALID_FOR=(ONLINE_LOGFILES,PRIMARY_ROLE) DB_UNIQUE_NAME=ORCLSTBY';
+
+System altered.
+
+
+SQL> shut immediate;
+Database closed.
+Database dismounted.
+ORACLE instance shut down.
+SQL> startup mount;
+ORACLE instance started.
+
+Total System Global Area  849530880 bytes
+Fixed Size                  1348244 bytes
+Variable Size             524291436 bytes
+Database Buffers          318767104 bytes
+Redo Buffers                5124096 bytes
+Database mounted.
+SQL> alter database set standby database to maximize protection;
+
+Database altered.
+
+SQL> alter database open;
+
+Database altered.
+
+SQL> select protection_mode from v$database;
+
+PROTECTION_MODE
+--------------------
+MAXIMUM PROTECTION
+
+
+4) To take back to maximum performance:-
+
+
+SQL> ALTER SYSTEM SET LOG_ARCHIVE_DEST_2='SERVICE=ORCLSTBY NOAFFIRM ASYNC VALID_FOR=(ONLINE_LOGFILES,PRIMARY_ROLE) DB_UNIQUE_NAME=ORCLSTBY' scope=spfile;
+
+System altered.
+
+SQL> alter database set standby database to maximize performance;
+
+Database altered.
+
+SQL> alter database open;
+
+Database altered.
+
+SQL> select protection_mode from v$database;
+
+PROTECTION_MODE
+--------------------
+MAXIMUM PERFORMANCE
+
+
+#############################################################################################
+
+Switchover:-
+----------
+
+1) On Primary database (dbavm) execute below commands:
+
+SQL> ALTER DATABASE COMMIT TO SWITCHOVER TO STANDBY;
+
+Database altered.
+
+SQL> shut immediate;
+
+
+SQL> startup nomount;
+ORACLE instance started.
+
+Total System Global Area  849530880 bytes
+Fixed Size                  1348244 bytes
+Variable Size             524291436 bytes
+Database Buffers          318767104 bytes
+Redo Buffers                5124096 bytes
+
+
+SQL> alter database mount standby database;
+
+Database altered.
+
+SQL> ALTER DATABASE RECOVER MANAGED STANDBY DATABASE DISCONNECT FROM SESSION;
+
+Database altered.
+
+2) On standby (dbatest) execute below commands:-
+
+SQL> ALTER DATABASE COMMIT TO SWITCHOVER TO PRIMARY;
+
+Database altered.
+
+SQL> shut immediate;
+ORA-01109: database not open
+
+
+Database dismounted.
+ORACLE instance shut down.
+
+SQL> startup;
+ORACLE instance started.
+
+Total System Global Area  849530880 bytes
+Fixed Size                  1348244 bytes
+Variable Size             499125612 bytes
+Database Buffers          343932928 bytes
+Redo Buffers                5124096 bytes
+Database mounted.
+Database opened.
+
+
+Now DB in DBAVM become standby and DB in DBATEST become new primary. Check the archive logs switching from primary to standby
+
+
+
+Failover:-
+##########
+
+(Now DBTEST is new primary and DBVM is new standby, if DBTEST crashes make DBVM as primary using failover method)
+
+
+1) Shutdown DBTEST (New primary) to show the scenario of primary crash.
+
+2) Now on DBVM (New standby) execute below commands
+
+SQL> ALTER DATABASE RECOVER MANAGED STANDBY DATABASE FINISH;
+
+Database altered.
+
+SQL> ALTER DATABASE ACTIVATE STANDBY DATABASE;
+
+Database altered.
+
+SQL> alter database open;
+
+Database altered.
+
+
+SQL> select database_role from v$database;
+
+DATABASE_ROLE
+----------------
+PRIMARY
+
+
+(The original primary database can now be configured as a standby. The whole setup process must be followed, but this time using the original primary server as the standby.)
+
+###################################################################################
+
+v$archived_log, v$archive_gap
+
+###################################################################################
+
+Active Dataguard
+----------------
+
+1) On Standby site execute the below commands:
+---------------------------------------------
+
+SQL> alter database recover managed standby database cancel;
+
+Database altered.
+
+SQL> shut immediate;
+ORA-01109: database not open
+
+
+Database dismounted.
+ORACLE instance shut down.
+SQL> startup mount;
+ORACLE instance started.
+
+Total System Global Area  849530880 bytes
+Fixed Size                  1348244 bytes
+Variable Size             499125612 bytes
+Database Buffers          343932928 bytes
+Redo Buffers                5124096 bytes
+Database mounted.
+SQL> alter database open read only;
+
+Database altered.
+
+SQL> ALTER DATABASE RECOVER MANAGED STANDBY DATABASE DISCONNECT FROM SESSION;
+
+Database altered.
+
+
+
+Snapshot Standby
+----------------
+
+Introduced in 11g, snapshot standby allows the standby database to be opened in read-write mode. 
+When switched back into standby mode, all changes made whilst in read-write mode are lost. 
+This is achieved using flashback database, but the standby database does not need to have flashback database explicitly enabled to take advantage of this feature, 
+thought it works just the same if it is.
+
+
+1) Convert to snapshot standby:-
+
+(On standby execute below commands)
+
+SQL> ALTER DATABASE RECOVER MANAGED STANDBY DATABASE CANCEL;
+
+Database altered.
+
+SQL> SELECT flashback_on FROM v$database;
+
+FLASHBACK_ON
+------------------
+NO
+
+SQL> ALTER DATABASE CONVERT TO SNAPSHOT STANDBY;
+
+Database altered.
+
+SQL> alter database open;
+
+Database altered.
+
+SQL> SELECT flashback_on FROM v$database;
+
+FLASHBACK_ON
+------------------
+RESTORE POINT ONLY
+
+You can now do treat the standby like any read-write database.
+
+
+2) To convert it back to the physical standby, losing all the changes made since the conversion to snapshot standby, issue the following commands.
+
+SQL> shut immediate;
+Database closed.
+Database dismounted.
+ORACLE instance shut down.
+
+SQL> startup mount;
+ORACLE instance started.
+
+Total System Global Area  849530880 bytes
+Fixed Size                  1348244 bytes
+Variable Size             499125612 bytes
+Database Buffers          343932928 bytes
+Redo Buffers                5124096 bytes
+Database mounted.
+
+SQL> ALTER DATABASE CONVERT TO PHYSICAL STANDBY;
+
+Database altered.
+
+SQL> shut immediate;
+ORA-01507: database not mounted
+
+
+ORACLE instance shut down.
+
+SQL> startup nomount;
+ORACLE instance started.
+
+Total System Global Area  849530880 bytes
+Fixed Size                  1348244 bytes
+Variable Size             499125612 bytes
+Database Buffers          343932928 bytes
+Redo Buffers                5124096 bytes
+
+SQL> ALTER DATABASE MOUNT STANDBY DATABASE;
+
+Database altered.
+
+
+SQL> ALTER DATABASE RECOVER MANAGED STANDBY DATABASE DISCONNECT from session;
+
+Database altered.
+
+
+
+####################################################################################################
+
+Configure Dataguard Broker:-
+--------------------------
+
+(On Primary site, DBAVM)
+
+
+1) On Primary make sure the listener has below entries and reload it
+
+SID_LIST_LISTENER =
+   (SID_LIST =
+     (SID_DESC =
+         (SID_NAME = PLSExtProc)
+         (ORACLE_HOME = /u01/app/oracle/product/11.2.0/db)
+        (PROGRAM = extproc)
+     )
+     (SID_DESC =
+        (SID_NAME = orcl)
+        (ORACLE_HOME = /u01/app/oracle/product/11.2.0/db)
+        (GLOBAL_DBNAME=orclprmy.mahi.com)
+     )
+     (SID_DESC =
+        (SID_NAME = orcl)
+        (ORACLE_HOME = /u01/app/oracle/product/11.2.0/db)
+        (GLOBAL_DBNAME=orclprmy_dgmgrl.mahi.com)
+     )
+   )
+
+OUTBOUND_CONNECT_TIMEOUT_LISTENER = 20
+
+LISTENER =
+  (DESCRIPTION_LIST =
+    (DESCRIPTION =
+      (ADDRESS = (PROTOCOL = TCP)(HOST = dbavm.mahi.com)(PORT = 1521))
+      (ADDRESS = (PROTOCOL = IPC)(KEY = EXTPROC1521))
+    )
+  )
+
+ADR_BASE_LISTENER = /u01/app/oracle
+
+
+
+[oracle@dbavm admin]$ lsnrctl reload
+
+
+2) On Standby, have the listener entry like below 
+
+SID_LIST_LISTENER =
+   (SID_LIST =
+     (SID_DESC =
+         (SID_NAME = PLSExtProc)
+         (ORACLE_HOME = /u01/app/oracle/product/11.2.0/db)
+        (PROGRAM = extproc)
+     )
+     (SID_DESC =
+        (SID_NAME = orcl)
+        (ORACLE_HOME = /u01/app/oracle/product/11.2.0/db)
+        (GLOBAL_DBNAME=orclstby.mahi.com)
+     )
+     (SID_DESC =
+        (SID_NAME = orcl)
+        (ORACLE_HOME = /u01/app/oracle/product/11.2.0/db)
+        (GLOBAL_DBNAME=orclstby_dgmgrl.mahi.com)
+     )
+
+   )
+
+OUTBOUND_CONNECT_TIMEOUT_LISTENER = 20
+
+LISTENER =
+  (DESCRIPTION_LIST =
+    (DESCRIPTION =
+      (ADDRESS = (PROTOCOL = TCP)(HOST = dbatest.mahi.com)(PORT = 1521))
+      (ADDRESS = (PROTOCOL = IPC)(KEY = EXTPROC1521))
+    )
+  )
+
+ADR_BASE_LISTENER = /u01/app/oracle
+
+
+[oracle@dbatest admin]$ lsnrctl reload
+
+3) Enable dataguard broker on both primary and standby
+(Execute below command on both primary and standby)
+
+Primary:- SQL> alter system set dg_broker_start=TRUE;
+
+System altered.
+
+Standby:- SQL> alter system set dg_broker_start=TRUE;
+
+System altered.
+
+
+It creates broker configuration files on both primary and standby under $ORACLE_HOME/dbs directory when you enable the broker.
+
+4) Start DGMGRL
+(on any node, I used it on primary)
+
+[oracle@dbavm dbs]$ dgmgrl
+DGMGRL for Linux: Version 11.2.0.3.0 - Production
+
+Copyright (c) 2000, 2009, Oracle. All rights reserved.
+
+Welcome to DGMGRL, type "help" for information.
+DGMGRL> connect sys/sys@orclprmy
+Connected.
+DGMGRL> 
+
+5) Create the Broker configuration
+
+DGMGRL> CREATE CONFIGURATION BTDEMO_DG AS PRIMARY DATABASE IS "BTDEMO_E1AP" CONNECT IDENTIFIER IS "BTDEMO_E1AP";
+
+Configuration "orcl_dg" created with primary database "orclprmy"
+
+6) Add standby database to configuration
+
+DGMGRL> ADD DATABASE 'BTDEMO_E1A' AS CONNECT IDENTIFIER IS 'orclstby';
+
+Database "orclstby" added
+
+7) Enable the configuration
+
+DGMGRL> enable configuration;
+
+Enabled.
+
+8) Show configuration
+
+DGMGRL> show configuration;
+
+Configuration - orcl_dg
+
+  Protection Mode: MaxPerformance
+  Databases:
+    orclprmy - Primary database
+    orclstby - Physical standby database
+
+Fast-Start Failover: DISABLED
+
+Configuration Status:
+SUCCESS
+
+
+********************* don't run it*********************
+
+9) 
+DGMGRL> switchover to 'orclstby';
+Performing switchover NOW, please wait...
+New primary database "orclstby" is opening...
+Operation requires shutdown of instance "orcl" on database "orclprmy"
+Shutting down instance "orcl"...
+ORACLE instance shut down.
+Operation requires startup of instance "orcl" on database "orclprmy"
+Starting instance "orcl"...
+ORACLE instance started.
+Database mounted.
+Switchover succeeded, new primary is "orclstby"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
