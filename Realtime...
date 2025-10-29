@@ -4,8 +4,7 @@ System altered.
  
 SQL> alter system set db_recovery_file_dest='/oraexp/fra' scope=both;
  
-System altered.
- 
+System altered. 
 ***update the retention per request, we usually make it for 48 hours i.e 2880***
  
 SQL> show parameter db_flashback_retention;
