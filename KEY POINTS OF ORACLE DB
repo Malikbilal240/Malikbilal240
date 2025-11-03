@@ -1,0 +1,29 @@
+KEY POINTS OF ORACLE DB
+PGA ##########################################
+PGA is like your own little disk in memory where oracle puts all things you need while using the db
+here are main things inside the PGA
+sort area, session data, hash join area, cursors, stack
+Sort area:
+Temporary memory for sorting and ordering data during SQL queries.
+Like: Pile of papers you’re sorting.
+Session data:
+Space for values and variables used only in your database session.
+Like: Your notepad and sticky notes.
+Hash join area:
+Memory used to match data from two tables when joining them.
+Like: A second pile where you’re matching customer files with orders.
+Cursors:
+Details about the SQL statements you have open and are working with.
+Like: Bookmarks to jump back to different projects you have open.
+Stack:
+Memory for handling calculations and running your database code.
+Like: Your calculator’s memory for quick math.
+==============================
+Scenarios when TEMP is used:##########################################
+Large sorts (e.g., ORDER BY or GROUP BY on many rows)
+Hash joins with huge data sets
+Creating indexes on big tables
+“Global temporary tables” when their data is larger than PGA can hold
+Example:
+You run a query that needs to sort 1 million rows, and PGA only fits 500,000.
+Oracle sorts 500,000 in memory; the rest gets written to TEMP tablespace on disk, then merged at the end.
