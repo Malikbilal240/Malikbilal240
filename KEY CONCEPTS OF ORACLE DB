@@ -79,3 +79,34 @@ Make undo tablespace bigger ✔️
 Increase undo_retention value ✔️
 Tune queries for speed ✔️
 Avoid running big queries during busy hours ✔️
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+what are the top five wait events...
+1. db file sequential read.
+what is it?waiting for a single block (row) to be read from disk(usually for an index lookup)
+when do you see it?
+when the db fetches specific rows - such as looking up an employee in a table by id.
+what it means? usually caused by queries that use indexs and sometimes indicates slow disk storage or missing indexes.
+2. db file scattered read
+what is it? waiting for multiple blocks to be read from disk at once (usually for full table scans)
+when do you see it? when oracle needs to read lots or rows from table (for example when running a search without index)
+what is means? often means queries are scaning entire tables..possibily because of missing or unused indexes.
+3. log file sync
+what is it? applications are waiting for changes(commits) to be safely written to the redo (for recovery)
+when do you see it? when there are lots of transactios being committed.
+what is means? petential bottleneck with disk speed for redo logs, or very frequent committs.
+4. db file parrallel write.
+what is it?
+waiting for multiple writes to be completed to disk at once (the db is saving lots of data at the same time?
+when do you see it?
+during operations batch updates, deletes or when writing large amounts of data.
+what it means? disk write throughput might be a limiting factor.
+5.  enq: TX - row lock contention
+What is it?
+Waiting for a lock to be released on a particular row in a table (another transaction is holding it).
+When do you see it?
+When multiple sessions try to modify the same row at the same time.
+What it means:
+Can indicate application design issues, such as too many users editing the same data, causing “blocking.”
+
+
