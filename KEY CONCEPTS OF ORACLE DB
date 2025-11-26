@@ -27,3 +27,55 @@ Creating indexes on big tables
 Example:
 You run a query that needs to sort 1 million rows, and PGA only fits 500,000.
 Oracle sorts 500,000 in memory; the rest gets written to TEMP tablespace on disk, then merged at the end.
+-------------------------------------------->>>>>>>>>>>>>>>>>>>>>
+Why ORA-01555 Happens
+Long queries need to access data as it looked when they started.
+The required “undo” history gets overwritten if the system is busy or the undo space is too small.
+When undo data needed by the query is gone, you get the ORA-01555 error.
+Solutions: How to Prevent ORA-01555
+1. Increase Undo Tablespace Size
+
+What: Make your undo tablespace bigger so it can keep more “before” images for longer time periods.
+How: Work with your DBA to resize (add more data files or increase size) the undo tablespace.
+Why: More space = more undo history retained.
+
+2. Set a Higher undo_retention Value
+
+What: Tell Oracle to try to keep undo data for a longer duration (in seconds).
+How:SQLALTER SYSTEM SET UNDO_RETENTION = 28800; -- (for 8 hours, for example)
+
+
+Why: Longer retention helps support long queries or flashback operations.
+
+3. Tune Long-Running Queries
+
+What: Make your queries faster—so they don’t need undo data for as long.
+How:
+
+Add indexes
+Break big jobs into smaller steps
+Optimize query logic
+
+
+
+4. Minimize Unnecessary DML Activity During Reporting
+
+What: If possible, schedule large reports or data exports when few data changes are happening (for example, during off-peak hours).
+Why: Fewer changes = slower undo usage = less chance of running out of undo history.
+
+5. Check for Uncommitted Transactions
+
+Stuck or forgotten uncommitted changes can keep undo data locked longer than needed and fill the undo space.
+Make sure transactions are regularly committed or rolled back.
+
+6. Use Read-Only or Replicated Environments for Long Reports
+
+If you can, run heavy reports on database replicas or snapshots instead of the main (busy) production database.
+
+
+Quick Checklist
+
+Make undo tablespace bigger ✔️
+Increase undo_retention value ✔️
+Tune queries for speed ✔️
+Avoid running big queries during busy hours ✔️
