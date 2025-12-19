@@ -4296,7 +4296,3048 @@ rm $CMD_SCRIPT
 exit
 ===============================================================================================================================================
 
+cross platform transportable tablespace migration xtts.
+XTTS_Migration_Steps_GPS_AWS 
 
+ 
+
+Login to On-prem source server and connect to the database (or use SQLDeveloper/TOAD) 
+
+ 
+
+Confirm Database is Up, check name and size of database. 
+
+ 
+
+set linesize 200 
+
+col current_scn format 99999999999999 
+
+select name,db_unique_name,open_mode,log_mode,current_scn,database_role from v$database; 
+
+ 
+
+SQL> select sum(bytes)/1024/1024/1024/1024 Size_in_TB from dba_data_files; 
+
+ 
+
+ 
+
+ 
+
+Connect to the AWS destination server and create the AWS destination database 
+
+ 
+
+Confirm that all Filesystems, and EFS mount points (/efs-backup,/orainstall) are configured on the server. 
+
+Make sure the listener is started. 
+
+Use DBCA to create the new AWS database 
+
+ 
+
+dbca 
+
+ 
+
+Steps 1-3 
+
+ 
+
+Create a database 
+
+Advance Configuration  
+
+Database Type: Oracle Single Instance 
+
+General Purpose or Transaction Processing 
+
+ 
+
+ 
+
+ 
+
+Steps 4-8 
+
+ 
+
+AWS_DB_Name.us.deloitte.com 
+
+No Container database 
+
+ 
+
+Database files storage type: File System 
+
+/opt/data/{DB_UNIQUE_NAME} 
+
+ 
+
+** Click on File location variables to confirm 
+
+ 
+
+Do not setup FRA Fast recovery area 
+
+DON’T Enable archiving 
+
+Select LISTENER Click Next 
+
+Skip Data Vault option 
+
+ 
+
+A screenshot of a computer
+
+AI-generated content may be incorrect. 
+
+A screenshot of a computer
+
+AI-generated content may be incorrect. 
+
+A screenshot of a recovery option
+
+AI-generated content may be incorrect. 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+Step 9 Specify Configuration Options 
+
+ 
+
+Memory Tab 
+
+Confirm AWS Destination server Memory  
+
+ 
+
+free -h 
+
+top 
+
+vmstat -s 
+
+ 
+
+Use Automatic Shared Memory Management 
+
+If Server Memory is 64GB, Set SGA size to 32 GB, Set PGA size to 16 GB 
+
+If Server Memory is 32GB, Set SGA size to 12 GB, Set PGA size to 4 GB 
+
+ 
+
+Sizing Tab 
+
+Confirm number of Processes from On-prem source database. 
+
+ 
+
+select value from v$parameter where name ='processes'; 
+
+ 
+
+Number of Processes should be the same as On-prem source database. 
+
+ 
+
+Character sets Tab 
+
+Confirm NLS and NLS_NCHAR CHARACTERSETS from On-prem source database. 
+
+ 
+
+SELECT parameter, value 
+
+  FROM v$nls_parameters 
+
+  WHERE parameter IN ('NLS_NCHAR_CHARACTERSET','NLS_CHARACTERSET'); 
+
+ 
+
+NLS and NLS_NCHAR CHARACTERSETS should be the same as On-prem source database. 
+
+NLS_CHARACTERSET: WE8MSWIN1252 
+
+NLS_NCHAR_CHARACTERSET: AL16UTF16 
+
+American 
+
+United States 
+
+ 
+
+Connection mode Tab  
+
+Dedicated server mode 
+
+ 
+
+Do NOT add Sample schemas 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+A screenshot of a computer
+
+AI-generated content may be incorrect. 
+
+A screenshot of a computer program
+
+AI-generated content may be incorrect. 
+
+A screenshot of a computer
+
+AI-generated content may be incorrect. 
+
+A screenshot of a computer
+
+AI-generated content may be incorrect. 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+Steps 10-11 
+
+ 
+
+Skip OEM Management option 
+
+Confirm SYS and SYSTEM Password for On-prem source database. The passwords should be the same for the AWS destination database. 
+
+ 
+
+st | grep SYS 
+
+ 
+
+Enter SYS and SYSTEM Password, ignore password warning and confirm to continue 
+
+ 
+
+A screenshot of a computer screen
+
+AI-generated content may be incorrect. 
+
+ 
+
+Step 12 Select Database Creation Option 
+
+ 
+
+Select Create database 
+
+** Click on “ALL Initialization Parameters”  
+
+Change and Include in SPFile the following parameters below to match the On-prem source database 
+
+ 
+
+Confirm Processes parameter is the same as On-prem source database 
+
+Confirm Sessions parameter is the same as On-prem source database 
+
+Confirm Open_cursors parameter is the same as On-prem source database 
+
+ 
+
+select value from v$parameter where name ='processes';  
+
+select value from v$parameter where name = 'sessions'; 
+
+select value from v$parameter where name = 'open_cursors'; 
+
+ 
+
+** Click on “Customize Storage Locations” 
+
+Configure the Location for Control files & Redologs Groups. Apply Changes 
+
+Control files 
+
+/opt/ctl/{DB_UNIQUE_NAME}/control01.ctl 
+
+/opt/ctl/{DB_UNIQUE_NAME}/control02.ctl 
+
+/opt/data/{DB_UNIQUE_NAME}/control03.ctl 
+
+Redologs 
+
+Group 1 1024MB 
+
+/opt/rdo/{DB_UNIQUE_NAME}/redo01a.log 
+
+/opt/rdo/{DB_UNIQUE_NAME}/redo01b.log 
+
+Group 2 1024MB 
+
+/opt/rdo/{DB_UNIQUE_NAME}/redo02a.log 
+
+/opt/rdo/{DB_UNIQUE_NAME}/redo02b.log 
+
+Group 3 1024MB 
+
+/opt/rdo/{DB_UNIQUE_NAME}/redo03a.log 
+
+/opt/rdo/{DB_UNIQUE_NAME}/redo03b.log   
+
+ 
+
+A screenshot of a computer
+
+AI-generated content may be incorrect. 
+
+ 
+
+ 
+
+ 
+
+A screenshot of a computer
+
+AI-generated content may be incorrect. 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+A screenshot of a computer
+
+AI-generated content may be incorrect. 
+
+A screenshot of a computer
+
+AI-generated content may be incorrect. 
+
+**CHECK ALL CONFIGURATION SUMMARY SETTING Before clicking Finish 
+
+Fix All issues raised by OUI 
+
+Create Database 
+
+ 
+
+A screenshot of a computer
+
+AI-generated content may be incorrect. 
+
+ 
+
+Once Database Creation is complete, run bash_profile again on AWS destination server 
+
+ 
+
+. .bash_profile 
+
+ 
+
+Login to the new AWS destination database 
+
+set linesize 200 
+
+col current_scn format 99999999999999 
+
+select name,db_unique_name,open_mode,log_mode,current_scn,database_role from v$database; 
+
+ 
+
+ 
+
+Enable Block Change Tracking 
+
+ 
+
+SELECT * FROM V$BLOCK_CHANGE_TRACKING; 
+
+ALTER DATABASE ENABLE BLOCK CHANGE TRACKING USING FILE '/opt/data/CPAS/rman_change_track.dbf'; 
+
+ 
+
+Run Alter Parallel Parameter changes  
+
+ 
+
+ALTER SYSTEM SET parallel_degree_policy = AUTO SCOPE=BOTH; 
+
+ALTER SYSTEM SET parallel_min_servers=0 SCOPE=BOTH; 
+
+ALTER SYSTEM SET parallel_max_servers=0 SCOPE=BOTH; 
+
+Show parameter parallel 
+
+ 
+
+ 
+
+ 
+
+ 
+
+Copy the “rman_xttconvert_VER4.3.zip” from /orainstall to /orainstall/<DB_name>_XTTS.  And unzip it.  
+
+ 
+
+Do this for both On-prem source server and AWS destination server 
+
+ 
+
+There will be a file generated post unzipping – “xtt.properties”, edit it as per below: 
+
+ 
+
+tablespaces=  (names of all the tablespaces except sys,sysaux,system,temp & undo. No space or quotation should be there) use this command for table spaces : select name from v$tablespace; copy them to notepad and then set them together in one line with no spaces just commas inbetween.  
+
+ 
+
+SQL> select name from v$tablespace; 
+
+ 
+
+platformid=6   (select platform_id from v$database – in source DB will give this number) 
+
+src_scratch_location=/orainstall /<DB_name>_XTTS (backup storage location in source server) 
+
+dest_datafile_location=/opt/data/<DB_name> ( datafiles location in AWS server) 
+
+dest_scratch_location=/orainstall/<DB_name>_XTTS (backup storage location in AWS server) 
+
+parallel=8 
+
+rollparallel=8 
+
+getfileparallel=4 
+
+i) usermantransport=1  (remove the hash before this line, it would be at bottom of properties file) 
+
+      A screen shot of a computer
+
+AI-generated content may be incorrect. 
+
+ 
+
+ 
+
+Take the first L0 Backup on the On-prem source server 
+
+ 
+
+CHANGE ENV to On-prem source database 
+
+cd /orainstall/<DB_name>_XTTS 
+
+export TMPDIR=/orainstall/<DB_name>_XTTS 
+
+echo $TMPDIR 
+
+export NLS_DATE_FORMAT='yyyy-mm-dd hh24:mi:ss' 
+
+echo "NLS_DATE_FORMAT= "$NLS_DATE_FORMAT 
+
+ 
+
+Take first L0 backup 
+
+nohup $ORACLE_HOME/perl/bin/perl xttdriver.pl --backup & 
+
+tail -f nohup.out 
+
+rm FAILED before taking another backup if failed 
+
+ 
+
+Move all generated XTTS files to S3 bucket 
+
+ 
+
+aws s3 cp /orainstall/<DB_name>_XTTS s3://doracle-ec2-migration-poc-deltek/<DB_name>_XTTS _1stJun/ --recursive --profile FederalDev --sse AES256 
+
+ 
+
+Move all S3 bucket files to /orainstall on the AWS destination server 
+
+ 
+
+aws s3 cp s3://doracle-ec2-migration-poc-deltek/<DB_name>_XTTS _1stJun/ /orainstall/<DB_name>_XTTS --recursive --profile FederalDev --sse AES256 
+
+ 
+
+Apply L0 backup (1st restore) – AWS Destination Server 
+
+ 
+
+CHANGE ENV to AWS Destination Database 
+
+select tablespace_name from dba_tablespaces; 
+
+select username, default_tablespace from dba_users; --!!! SAVE THIS INFORMATION FOR LATER!!! 
+
+ 
+
+a. CREATE TABLESPACE USERS_TEMP DATAFILE '/opt/data/DB_name/users_temp_01.dbf' SIZE 10M AUTOEXTEND ON;   
+
+b. alter database default tablespace USERS_TEMP;    
+
+c. DROP TABLESPACE USERS INCLUDING CONTENTS AND DATAFILES;   -- dropping USERS tablespace as it is included in the XTTS tablespace list 
+
+ 
+
+d.	cd /orainstall/<DB_name>_XTTS 
+
+ 
+
+e.	export TMPDIR=/orainstall/<DB_name>_XTTS 
+
+ 
+
+echo $TMPDIR 
+
+export NLS_DATE_FORMAT='yyyy-mm-dd hh24:mi:ss' 
+
+echo "NLS_DATE_FORMAT= "$NLS_DATE_FORMAT 
+
+ 
+
+f.	$ORACLE_HOME/perl/bin/perl xttdriver.pl –restore 
+
+tail -f nohup.out 
+
+ rm FAILED before taking another backup if failed 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ROLL FORWARD PHASE L1 backup: (Repeat multiple times) 
+
+ 
+
+       SOURCE DB: 
+
+cd /orainstall/<DB_name>_XTTS 
+
+a.	export TMPDIR=/orainstall/<DB_name>_XTTS 
+
+b.	$ORACLE_HOME/perl/bin/perl xttdriver.pl --backup 
+
+ 
+
+c.	Copy all the files to destination. (follow same steps as step 4 & 5, remove *.bkp files from on-prem TMPDIR) 
+
+ 
+
+EXAMPLE: scp *_1 backup_Jun6* incrbackups.txt newfile.txt res.txt tsbkupmap.txt xttplan.txt xttplan.txt.new oradtk@usawsenast00134:/orainstall/CPAS_XTTS 
+
+ 
+
+ 
+
+ AWS TARGET DB L1 recovery: 
+
+cd /orainstall/<DB_name>_XTTS 
+
+d.	export TMPDIR=/orainstall/<DB_name>_XTTS 
+
+e.	$ORACLE_HOME/perl/bin/perl xttdriver.pl –restore 
+
+f.	create directory dpump_tts as '/orainstall/<DB_name>_XTTS’; 
+
+g.	GRANT READ, WRITE ON DIRECTORY dpump_tts TO system; 
+
+ 
+
+ 
+
+ Creating users and granting Privs 
+
+ 
+
+SOURCE DB: !! IN THE GPS ENVIRONMENT, PROFILE MUST ALSO BE INCLUDED AS A OBJECT BECAUSE SOME USERS ARE CREATED USING PROFILES 
+
+ 
+
+expdp  directory= DPUMP_TTS  logfile=USERS_<DB_name>.log dumpfile= USERS_<DB_name>.dmp  full=Y include= PROFILE, USER, ROLE, GRANT 
+
+ 
+
+EXAMPLE: expdp directory=DPUMP_TTS logfile=USERS_CPAS_exp.log dumpfile=USERS_CPAS.dmp full=Y metrics=y include=PROFILE,USER,ROLE,GRANT 
+
+ 
+
+scp USERS_CPAS.dmp oradtk@usawsenast00134:/orainstall/CPAS_XTTS 
+
+ 
+
+ 
+
+DESTINATION DB (AWS): 
+
+ 
+
+a)	Impdp directory= DPUMP_TTS  logfile= USERS_<DB_name>.log dumpfile= USERS_<DB_name>.dmp sqlfile= USERS_<DB_name>.sql 
+
+b)	Edit the default tablespace name in .sql file to USERS_TEMP 
+
+c)	Run .sql file in AWS server 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+You may have to upgrade the timezone_file before importing to the AWS Destination DB 
+
+[4/1 2:19 PM] Kumari, Babita 
+
+select version from v$timezone_file; 
+
+Shut down & start upgrade DB 
+
+shut immediate; 
+
+exit 
+
+startup upgrade; 
+
+EXEC DBMS_DST.BEGIN_UPGRADE(<the new DST version number>); 
+
+-FIND NUMBER ON SOURCE SERVER 
+
+EXEC DBMS_DST.BEGIN_UPGRADE (41); 
+
+EXEC DBMS_DST.END_UPGRADE; 
+
+shut immediate & startup 
+
+select version from v$timezone_file; 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ !! MOVE THE TEMPORARY TABLES FROM ON-PREM SOURCE DB NOW 
+
+ 
+
+Use the below queries in SQL Developer or TOAD to find the TEMPORARY TABLES IN THE ON-PREM SOURCE DB 
+
+ 
+
+SELECT OWNER, 
+
+       TABLE_NAME, 
+
+       TABLESPACE_NAME, 
+
+   IOT_NAME, 
+
+   STATUS, 
+
+   PARTITIONED, 
+
+   IOT_TYPE, 
+
+   TEMPORARY, 
+
+   SECONDARY, 
+
+   DEPENDENCIES, 
+
+   SHARDED, 
+
+   EXTERNAL, 
+
+   HYBRID 
+
+FROM DBA_TABLES 
+
+WHERE TABLESPACE_NAME IS NULL 
+
+AND TEMPORARY = 'Y' 
+
+AND OWNER NOT IN (select username from dba_users where oracle_maintained='Y'); 
+
+ 
+
+select OWNER||'.'||TABLE_NAME FROM DBA_TABLES 
+
+WHERE TABLESPACE_NAME IS NULL 
+
+AND OWNER NOT IN (select username from dba_users where oracle_maintained='Y'); 
+
+ 
+
+select OWNER||'.'||TABLE_NAME FROM DBA_TABLES 
+
+WHERE TABLESPACE_NAME IS NULL 
+
+AND TEMPORARY = 'Y' 
+
+AND OWNER NOT IN (select username from dba_users where oracle_maintained='Y'); 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+Once you get the names of the TEMPORARY TABLES, use Datapump to export and import the Metadata of the TEMPORARY TABLES to the AWS Destination Database. 
+
+ 
+
+EXAMPLE: 
+
+ 
+
+SOURCE DB 
+
+CHANGE ENV CPAS 
+
+cd /orainstall/CPAS_XTTS 
+
+ 
+
+expdp system directory=DPUMP_TTS logfile=temptabs_CPAS_exp.log dumpfile=temptabs_CPAS.dmp parallel=8 metrics=y tables=DELTEK.QUEST_SL_TEMP_EXPLAIN1,DELOITTE.QUEST_SL_TEMP_EXPLAIN1,DELTEK.Z_BLPGBILL_WRK4_TEMP,DELTEK.Z_BLPGBILL_WRK6A,DELTEK.Z_BLPGBILL_WRK6CA,DELTEK.Z_BLPGBILL_WRK6TA,DELTEK.Z_BLPGBILL_WRK7A,DELTEK.Z_BLPGBILL_WRK7CA,DELTEK.Z_BLPGEN_ARHDRHS,DELTEK.Z_BLPGEN_BILL_SUM,DELTEK.Z_BLPGBILL_LLR_LN,DELTEK.Z_BLPGBILL_WRK4W,DELTEK.Z_BLPGBILL_BED,DELTEK.Z_BLPGBILL_BED1 
+
+ 
+
+ 
+
+expdp system directory=DPUMP_TTS logfile=temptabs_CPAS_2_exp.log dumpfile=temptabs_CPAS_2.dmp parallel=8 metrics=y tables=DELTEK.Z_BLPGBILL_BEIH,DELTEK.Z_BLPGBILL_BEIH1,DELTEK.Z_BLPGBILL_CEIL1A,DELTEK.Z_BLPGBILL_CEIL3,DELTEK.Z_BLPGBILL_CEIL4,DELTEK.Z_BLPGBILL_PMOD,DELTEK.Z_BLPGBILL_RATES,DELTEK.Z_BLPGBILL_RATES2,DELTEK.Z_BLPGBILL_RETRO,DELTEK.Z_BLPGBILL_RWRK1,DELTEK.Z_BLPGBILL_UPCLIN,DELTEK.Z_BLPGBILL_WAWF,DELTEK.Z_BLPGBILL_WMUX,DELTEK.Z_BLPGBILL_WRK2,DELTEK.Z_BLPGBILL_WRK3,DELTEK.Z_BLPGBILL_WRK4 
+
+ 
+
+ 
+
+expdp system directory=DPUMP_TTS logfile=temptabs_CPAS_3_exp.log dumpfile=temptabs_CPAS_3.dmp parallel=8 metrics=y tables=TC_0001.CURRENTS_1,TC_0001.CURRENTS_2,TC_0001.FINALFROMFILTER,TC_0001.BLOOPTABLE,TC_0001.BOKTABLE,TC_0001.BRANCHSTACKTABLE,TC_0001.TREESTACKTABLE,TC_0001.EXPLODEBRANCHTABLE,TC_0001.LOOKUPFILTERTAB,TC_0005.BLOOPTABLE,TC_0005.BOKTABLE,TC_0005.BRANCHSTACKTABLE,TC_0005.CURRENTS_1,TC_0005.CURRENTS_2,TC_0005.TREESTACKTABLE,TC_0005.EXPLODEBRANCHTABLE,TC_0005.FINALFROMFILTER,TC_0005.LOOKUPFILTERTAB,TC_0005.CHGFLT_SP_TAB1,TC_0005.CHGFLT_SP_TAB2,TC_0005.CHGFLT_SP_TAB3,TC_0005.CHGFLT_SP_TAB4 
+
+ 
+
+ 
+
+scp temptabs_CPAS.dmp temptabs_CPAS_2.dmp temptabs_CPAS_3.dmp oradtk@usawsenast00134.us.deloitte.com:/orainstall/CPAS_XTTS 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+DESTINATION DB 
+
+CHANGE ENV CPAS 
+
+cd /orainstall/CPAS_XTTS 
+
+ 
+
+impdp system directory=DPUMP_TTS logfile=temptabs_CPAS_imp.log dumpfile=temptabs_CPAS.dmp parallel=8 metrics=y tables=DELTEK.QUEST_SL_TEMP_EXPLAIN1,DELOITTE.QUEST_SL_TEMP_EXPLAIN1,DELTEK.Z_BLPGBILL_WRK4_TEMP,DELTEK.Z_BLPGBILL_WRK6A,DELTEK.Z_BLPGBILL_WRK6CA,DELTEK.Z_BLPGBILL_WRK6TA,DELTEK.Z_BLPGBILL_WRK7A,DELTEK.Z_BLPGBILL_WRK7CA,DELTEK.Z_BLPGEN_ARHDRHS,DELTEK.Z_BLPGEN_BILL_SUM,DELTEK.Z_BLPGBILL_LLR_LN,DELTEK.Z_BLPGBILL_WRK4W,DELTEK.Z_BLPGBILL_BED,DELTEK.Z_BLPGBILL_BED1 
+
+ 
+
+impdp system directory=DPUMP_TTS logfile=temptabs_CPAS_2_imp.log dumpfile=temptabs_CPAS_2.dmp parallel=8 metrics=y tables=DELTEK.Z_BLPGBILL_BEIH,DELTEK.Z_BLPGBILL_BEIH1,DELTEK.Z_BLPGBILL_CEIL1A,DELTEK.Z_BLPGBILL_CEIL3,DELTEK.Z_BLPGBILL_CEIL4,DELTEK.Z_BLPGBILL_PMOD,DELTEK.Z_BLPGBILL_RATES,DELTEK.Z_BLPGBILL_RATES2,DELTEK.Z_BLPGBILL_RETRO,DELTEK.Z_BLPGBILL_RWRK1,DELTEK.Z_BLPGBILL_UPCLIN,DELTEK.Z_BLPGBILL_WAWF,DELTEK.Z_BLPGBILL_WMUX,DELTEK.Z_BLPGBILL_WRK2,DELTEK.Z_BLPGBILL_WRK3,DELTEK.Z_BLPGBILL_WRK4 
+
+ 
+
+impdp system directory=DPUMP_TTS logfile=temptabs_CPAS_3_imp.log dumpfile=temptabs_CPAS_3.dmp parallel=8 metrics=y tables=TC_0001.CURRENTS_1,TC_0001.CURRENTS_2,TC_0001.FINALFROMFILTER,TC_0001.BLOOPTABLE,TC_0001.BOKTABLE,TC_0001.BRANCHSTACKTABLE,TC_0001.TREESTACKTABLE,TC_0001.EXPLODEBRANCHTABLE,TC_0001.LOOKUPFILTERTAB,TC_0005.BLOOPTABLE,TC_0005.BOKTABLE,TC_0005.BRANCHSTACKTABLE,TC_0005.CURRENTS_1,TC_0005.CURRENTS_2,TC_0005.TREESTACKTABLE,TC_0005.EXPLODEBRANCHTABLE,TC_0005.FINALFROMFILTER,TC_0005.LOOKUPFILTERTAB,TC_0005.CHGFLT_SP_TAB1,TC_0005.CHGFLT_SP_TAB2,TC_0005.CHGFLT_SP_TAB3,TC_0005.CHGFLT_SP_TAB4 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+Once the Export Import is complete, confirm that the TEMPORARY TABLES have been created on the AWS Destination Database. 
+
+ 
+
+select OWNER||'.'||TABLE_NAME FROM DBA_TABLES 
+
+WHERE TABLESPACE_NAME IS NULL 
+
+AND TEMPORARY = 'Y' 
+
+AND OWNER NOT IN (select username from dba_users where oracle_maintained='Y'); 
+
+ 
+
+ 
+
+ 
+
+ 
+
+Make all Tablespace Read-Only for On-Prem Source DB 
+
+ 
+
+select 'ALTER TABLESPACE '||tablespace_name||' read only;' from dba_tablespaces; 
+
+select 'ALTER TABLESPACE '||tablespace_name||' READ WRITE;' from dba_tablespaces; 
+
+ 
+
+ 
+
+ALTER TABLESPACE COSTPOINT_DATA read only; 
+
+ALTER TABLESPACE COSTPOINT_DYN read only; 
+
+ALTER TABLESPACE COSTPOINT_INDEX read only; 
+
+ALTER TABLESPACE COSTPOINT_RPTDATA read only; 
+
+ALTER TABLESPACE COSTPOINT_RPTINDEX read only; 
+
+ALTER TABLESPACE COSTPOINT_XZDATA read only; 
+
+ALTER TABLESPACE COSTPOINT_XZINDEX read only; 
+
+ALTER TABLESPACE CPMETA_DATA read only; 
+
+ALTER TABLESPACE CPMETA_INDEX read only; 
+
+ALTER TABLESPACE DELOITTE read only; 
+
+ALTER TABLESPACE USERS read only; 
+
+ALTER TABLESPACE TE_DATA read only; 
+
+ALTER TABLESPACE TE_INDEX read only; 
+
+ 
+
+ 
+
+ 
+
+SQL> select tablespace_name,status from dba_tablespaces; 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ON THE FINAL CUTOVER DAY: 
+
+ 
+
+SOURCE DB: 
+
+1.	Alter all source tablespace(s) READ ONLY in the source database, example: 
+
+          alter tablespace TS1 read only; 
+
+2.	Create the final incremental backup and  export file for transfer to the destination 
+
+3.    IF YOU GET AN ERROR ON THE FINAL BACKUP It will most likely be this error below. Remove the FAILED directory before taking another backup 
+
+ 
+
+ 
+
+RMAN-08400: Running TRANSPORT_SET_CHECK on specified tablespaces 
+
+RMAN-06980: The following errors need to be fixed before peforming this command 
+
+RMAN-06981:      Violation: ORA-39907: Index SYSTEM.INDX_HXM_RECORD_LOG in tablespace SYSTEM points to table DELOITTE.INF_HXM_RECORD_LOG in tablespace COSTPOINT_DATA. 
+
+RMAN-00571: =========================================================== 
+
+RMAN-00569: =============== ERROR MESSAGE STACK FOLLOWS =============== 
+
+RMAN-00571: =========================================================== 
+
+RMAN-03002: failure of backup command at 05/02/2025 10:37:06 
+
+RMAN-05072: TRANSPORT_SET_CHECK failed 
+
+ 
+
+Recovery Manager complete. 
+
+ A specified file does not support the ioctl system call. 
+
+ 
+
+How to Fix Issue 
+
+select owner, index_name, TABLE_NAME, a.TABLESPACE_NAME  
+
+from all_indexes a where a.TABLE_NAME = 'INF_HXM_RECORD_LOG'; 
+
+ 
+
+ALTER INDEX SYSTEM.INDX_HXM_RECORD_LOG REBUILD TABLESPACE COSTPOINT_DATA; 
+
+ 
+
+ 
+
+ 
+
+SOURCE DB: 
+
+ 
+
+CHANGE ENV CPAS 
+
+cd /orainstall/CPAS_XTTS 
+
+export TMPDIR=/ orainstall/CPAS_XTTS 
+
+echo $TMPDIR 
+
+export NLS_DATE_FORMAT='yyyy-mm-dd hh24:mi:ss' 
+
+echo "NLS_DATE_FORMAT= "$NLS_DATE_FORMAT 
+
+nohup $ORACLE_HOME/perl/bin/perl xttdriver.pl --bkpexport & 
+
+tail -f nohup.out 
+
+ rm FAILED before taking another backup if failed  
+
+  
+
+cat incrbackups.txt 
+
+scp incrbackups.txt newfile.txt res.txt tsbkupmap.txt xttplan.txt xttplan.txt.new oradtk@usawsenast00134:/orainstall/CPAS_XTTS 
+
+ 
+
+scp -r bkpexport_May2_Fri_10_44_28_994 *_1 incrbackups.txt newfile.txt res.txt tsbkupmap.txt xttplan.txt xttplan.txt.new oradtk@usawsenast00134.us.deloitte.com:/orainstall/CPAS_XTTS 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+AWS DESTINATION DB: 
+
+ 
+
+3.	Apply last incremental backup to destination datafiles 
+
+ 
+
+ 
+
+CHANGE ENV CPAS 
+
+cd /orainstall/CPAS_XTTS 
+
+export TMPDIR=/orainstall/CPAS_XTTS 
+
+echo $TMPDIR 
+
+export NLS_DATE_FORMAT='yyyy-mm-dd hh24:mi:ss' 
+
+echo "NLS_DATE_FORMAT= "$NLS_DATE_FORMAT 
+
+e.	nohup $ORACLE_HOME/perl/bin/perl xttdriver.pl --resincrdmp & 
+
+tail -n 100 -f nohup.out 
+
+ rm FAILED before taking another backup if failed  
+
+ 
+
+ 
+
+export TMPDIR=/orainstall/CPAS_XTTS 
+
+ 
+
+$ORACLE_HOME/perl/bin/perl xttdriver.pl --resincrdmp & 
+
+ 
+
+4.	Modify xttplugin.txt file: 
+
+ 
+
+Add exclude=STATISTICS 
+
+ 
+
+And Run 
+
+ 
+
+[usawsenast00134 oradtk CPAS]> cat xttplugin.txt 
+
+directory=DPUMP_TTS  
+
+logfile=impmigration_02MAY25.log 
+
+dumpfile=impdp_May2_Fri_11_11_05_278.dmp 
+
+logtime=all 
+
+metrics=y 
+
+exclude=STATISTICS 
+
+transport_datafiles='/opt/data/CPAS/COSTPOINT_DATA_6.dbf','/opt/data/CPAS/COSTPOINT_DATA_7.dbf','/opt/data/CPAS/COSTPOINT_DATA_8.dbf','/opt/data/CPAS/COSTPOINT_DATA_9.dbf','/opt/data/CPAS/COSTPOINT_DATA_10.dbf','/opt/data/CPAS/COSTPOINT_DATA_11.dbf','/opt/data/CPAS/COSTPOINT_DATA_12.dbf','/opt/data/CPAS/COSTPOINT_DATA_50.dbf','/opt/data/CPAS/COSTPOINT_DATA_51.dbf','/opt/data/CPAS/COSTPOINT_DATA_52.dbf','/opt/data/CPAS/COSTPOINT_DATA_57.dbf','/opt/data/CPAS/COSTPOINT_DATA_58.dbf','/opt/data/CPAS/COSTPOINT_DATA_59.dbf','/opt/data/CPAS/COSTPOINT_DATA_66.dbf','/opt/data/CPAS/COSTPOINT_DATA_69.dbf','/opt/data/CPAS/COSTPOINT_DATA_73.dbf','/opt/data/CPAS/COSTPOINT_DATA_74.dbf','/opt/data/CPAS/COSTPOINT_DATA_77.dbf','/opt/data/CPAS/COSTPOINT_DATA_78.dbf','/opt/data/CPAS/COSTPOINT_DATA_83.dbf','/opt/data/CPAS/COSTPOINT_DATA_84.dbf','/opt/data/CPAS/COSTPOINT_DATA_90.dbf','/opt/data/CPAS/COSTPOINT_DATA_91.dbf','/opt/data/CPAS/COSTPOINT_DATA_93.dbf','/opt/data/CPAS/COSTPOINT_DATA_100.dbf','/opt/data/CPAS/COSTPOINT_DATA_101.dbf','/opt/data/CPAS/COSTPOINT_DATA_102.dbf','/opt/data/CPAS/COSTPOINT_DATA_110.dbf','/opt/data/CPAS/COSTPOINT_DATA_112.dbf','/opt/data/CPAS/COSTPOINT_DATA_118.dbf','/opt/data/CPAS/COSTPOINT_DATA_119.dbf','/opt/data/CPAS/COSTPOINT_DATA_124.dbf','/opt/data/CPAS/COSTPOINT_DATA_128.dbf','/opt/data/CPAS/COSTPOINT_DATA_133.dbf','/opt/data/CPAS/COSTPOINT_DATA_135.dbf','/opt/data/CPAS/COSTPOINT_DATA_141.dbf','/opt/data/CPAS/COSTPOINT_DATA_146.dbf','/opt/data/CPAS/COSTPOINT_DATA_147.dbf','/opt/data/CPAS/COSTPOINT_DATA_148.dbf','/opt/data/CPAS/COSTPOINT_DATA_149.dbf','/opt/data/CPAS/COSTPOINT_DATA_150.dbf','/opt/data/CPAS/COSTPOINT_DATA_152.dbf','/opt/data/CPAS/COSTPOINT_DATA_154.dbf','/opt/data/CPAS/COSTPOINT_DATA_156.dbf','/opt/data/CPAS/COSTPOINT_DATA_157.dbf','/opt/data/CPAS/COSTPOINT_DATA_158.dbf','/opt/data/CPAS/COSTPOINT_DATA_159.dbf','/opt/data/CPAS/COSTPOINT_DATA_160.dbf','/opt/data/CPAS/COSTPOINT_DATA_161.dbf','/opt/data/CPAS/COSTPOINT_DATA_162.dbf','/opt/data/CPAS/COSTPOINT_DATA_163.dbf','/opt/data/CPAS/COSTPOINT_DATA_164.dbf','/opt/data/CPAS/COSTPOINT_DATA_183.dbf','/opt/data/CPAS/COSTPOINT_DYN_13.dbf','/opt/data/CPAS/COSTPOINT_DYN_14.dbf','/opt/data/CPAS/COSTPOINT_DYN_15.dbf','/opt/data/CPAS/COSTPOINT_DYN_16.dbf','/opt/data/CPAS/COSTPOINT_DYN_17.dbf','/opt/data/CPAS/COSTPOINT_INDEX_18.dbf','/opt/data/CPAS/COSTPOINT_INDEX_19.dbf','/opt/data/CPAS/COSTPOINT_INDEX_166.dbf','/opt/data/CPAS/COSTPOINT_INDEX_167.dbf','/opt/data/CPAS/COSTPOINT_INDEX_168.dbf','/opt/data/CPAS/COSTPOINT_INDEX_169.dbf','/opt/data/CPAS/COSTPOINT_INDEX_170.dbf','/opt/data/CPAS/COSTPOINT_INDEX_171.dbf','/opt/data/CPAS/COSTPOINT_INDEX_176.dbf','/opt/data/CPAS/COSTPOINT_INDEX_177.dbf','/opt/data/CPAS/COSTPOINT_INDEX_178.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_20.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_21.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_22.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_23.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_24.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_25.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_26.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_27.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_28.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_29.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_30.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_53.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_54.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_55.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_56.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_60.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_61.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_62.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_63.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_64.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_65.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_67.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_68.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_70.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_71.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_72.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_75.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_76.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_79.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_80.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_81.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_82.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_85.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_86.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_87.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_88.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_89.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_92.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_94.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_95.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_96.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_97.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_98.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_99.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_103.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_104.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_108.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_109.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_111.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_113.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_117.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_120.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_122.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_123.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_125.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_126.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_127.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_129.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_130.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_131.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_132.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_134.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_136.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_138.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_140.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_142.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_143.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_144.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_145.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_151.dbf','/opt/data/CPAS/COSTPOINT_RPTDATA_153.dbf','/opt/data/CPAS/COSTPOINT_RPTINDEX_31.dbf','/opt/data/CPAS/COSTPOINT_RPTINDEX_32.dbf','/opt/data/CPAS/COSTPOINT_RPTINDEX_33.dbf','/opt/data/CPAS/COSTPOINT_RPTINDEX_105.dbf','/opt/data/CPAS/COSTPOINT_XZDATA_34.dbf','/opt/data/CPAS/COSTPOINT_XZDATA_35.dbf','/opt/data/CPAS/COSTPOINT_XZDATA_36.dbf','/opt/data/CPAS/COSTPOINT_XZDATA_37.dbf','/opt/data/CPAS/COSTPOINT_XZDATA_38.dbf','/opt/data/CPAS/COSTPOINT_XZDATA_115.dbf','/opt/data/CPAS/COSTPOINT_XZDATA_116.dbf','/opt/data/CPAS/COSTPOINT_XZDATA_121.dbf','/opt/data/CPAS/COSTPOINT_XZDATA_137.dbf','/opt/data/CPAS/COSTPOINT_XZDATA_155.dbf','/opt/data/CPAS/COSTPOINT_XZINDEX_39.dbf','/opt/data/CPAS/COSTPOINT_XZINDEX_40.dbf','/opt/data/CPAS/COSTPOINT_XZINDEX_41.dbf','/opt/data/CPAS/CPMETA_DATA_42.dbf','/opt/data/CPAS/CPMETA_INDEX_43.dbf','/opt/data/CPAS/DELOITTE_44.dbf','/opt/data/CPAS/DELOITTE_165.dbf','/opt/data/CPAS/USERS_45.dbf','/opt/data/CPAS/USERS_46.dbf','/opt/data/CPAS/USERS_172.dbf','/opt/data/CPAS/USERS_173.dbf','/opt/data/CPAS/USERS_174.dbf','/opt/data/CPAS/USERS_175.dbf','/opt/data/CPAS/USERS_180.dbf','/opt/data/CPAS/USERS_181.dbf','/opt/data/CPAS/TE_DATA_106.dbf','/opt/data/CPAS/TE_INDEX_107.dbf' 
+
+ 
+
+ 
+
+ 
+
+pwd 
+
+vi impmigration_02MAY25.par 
+
+cat impmigration_02MAY25.par 
+
+cd /orainstall/CPAS_XTTS 
+
+CPAS 
+
+  574  nohup impdp system/xutt2yh37p parfile=impmigration_02MAY25.par & 
+
+  575  ll 
+
+  576  tail -n 100 -f nohup.out 
+
+ 
+
+remove logfile if it fails 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+Do Post checks after Final restore: 
+
+ 
+
+select tablespace_name,status from dba_tablespaces; 
+
+ 
+
+ 
+
+a)	Verify the object counts: 
+
+Check on BOTH PREM and AWS the difference 
+
+AWS & ON-PREM 
+
+ 
+
+set pages 300 lines 300 
+
+col owner for a20 
+
+BREAK ON owner SKIP 1 
+
+COMPUTE COUNT OF status ON owner 
+
+select owner,object_type,status,count(object_name) from dba_objects where owner in (Schemas found in “select username from dba_users where oracle_maintained='N';”) 
+
+group by owner,object_type,status order by owner; 
+
+ 
+
+ 
+
+select segment_type,round(sum(bytes)/1024/1024) as SIZE_MB from dba_segments where owner in (Schemas found in “select username from dba_users where oracle_maintained='N';”) group by segment_type order by 2 desc; 
+
+ 
+
+ 
+
+select username, default_tablespace from dba_users where oracle_maintained='N'; 
+
+select username from dba_users where oracle_maintained='N'; 
+
+select username from dba_users where oracle_maintained='Y'; 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+Make all Tablespace READ WRITE for AWS Destination DB 
+
+ 
+
+ALTER TABLESPACE COSTPOINT_DATA READ WRITE; 
+
+ALTER TABLESPACE COSTPOINT_DYN READ WRITE; 
+
+ALTER TABLESPACE COSTPOINT_INDEX READ WRITE; 
+
+ALTER TABLESPACE COSTPOINT_RPTDATA READ WRITE; 
+
+ALTER TABLESPACE COSTPOINT_RPTINDEX READ WRITE; 
+
+ALTER TABLESPACE COSTPOINT_XZDATA READ WRITE; 
+
+ALTER TABLESPACE COSTPOINT_XZINDEX READ WRITE; 
+
+ALTER TABLESPACE CPMETA_DATA READ WRITE; 
+
+ALTER TABLESPACE CPMETA_INDEX READ WRITE; 
+
+ALTER TABLESPACE DELOITTE READ WRITE; 
+
+ALTER TABLESPACE USERS READ WRITE; 
+
+ALTER TABLESPACE TE_DATA READ WRITE; 
+
+ALTER TABLESPACE TE_INDEX READ WRITE; 
+
+ 
+
+ 
+
+ 
+
+ 
+
+!!! Some objects will be missing, but we will grant the DBA_ROLE_PRIVS, DBA_SYS_PRIVS, DBA_TS_QUOTAS, and generate all missing Indexes BEFORE WE import any other missing Objects and DBA_TAB_PRIVS. 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+!!! MAKE SURE TO GO BACK AND CORRECT THE DEFUALT TABLESPACES FOR ALL USERS BACK TO ORGINAL AND REMOVE USER_TEMP TABLESPACE 
+
+ 
+
+** Run this command to get the below o/p in on-prem (select 'alter user '|| USERNAME||' DEFAULT TABLESPACE '||DEFAULT_TABLESPACE||';' from dba_users;)** 
+
+SET HEADING OFF 
+
+select 'alter user '|| USERNAME||' DEFAULT TABLESPACE '||DEFAULT_TABLESPACE||';' from dba_users where oracle_maintained='N'; 
+
+ 
+
+alter user CPLINK_USER DEFAULT TABLESPACE COSTPOINT_DATA; 
+
+alter user DELOITTE DEFAULT TABLESPACE COSTPOINT_DATA; 
+
+alter user DELTEK DEFAULT TABLESPACE COSTPOINT_DATA; 
+
+alter user CPSYSTEM DEFAULT TABLESPACE CPMETA_DATA; 
+
+alter user TCIMPORT DEFAULT TABLESPACE CPMETA_DATA; 
+
+alter user TC_0005 DEFAULT TABLESPACE CPMETA_DATA; 
+
+alter user CPADMIN DEFAULT TABLESPACE CPMETA_DATA; 
+
+alter user TC_0000 DEFAULT TABLESPACE CPMETA_DATA; 
+
+alter user TCDSI DEFAULT TABLESPACE CPMETA_DATA; 
+
+alter user TCLOGIN DEFAULT TABLESPACE CPMETA_DATA; 
+
+alter user TC_0001 DEFAULT TABLESPACE CPMETA_DATA; 
+
+alter user TM1USER DEFAULT TABLESPACE DELOITTE; 
+
+alter user DAALLISON DEFAULT TABLESPACE USERS; 
+
+alter user SVCSFVP DEFAULT TABLESPACE USERS; 
+
+alter user DELPHIX_PROD DEFAULT TABLESPACE USERS; 
+
+alter user COGNOS_READER DEFAULT TABLESPACE USERS; 
+
+alter user SVCBOT DEFAULT TABLESPACE USERS; 
+
+alter user INTEGRIFY_ADMIN DEFAULT TABLESPACE USERS; 
+
+alter user S_FINANCE DEFAULT TABLESPACE USERS; 
+
+alter user CPROUSR DEFAULT TABLESPACE USERS; 
+
+alter user SVCWDAP_READER DEFAULT TABLESPACE USERS; 
+
+alter user DEVOPS DEFAULT TABLESPACE USERS; 
+
+alter user LOGGER_USER DEFAULT TABLESPACE USERS; 
+
+alter user STCHRISTIANSEN DEFAULT TABLESPACE USERS; 
+
+alter user SVCWDAP DEFAULT TABLESPACE USERS; 
+
+alter user P_FINANCE DEFAULT TABLESPACE USERS; 
+
+alter user SWIFTDM DEFAULT TABLESPACE USERS; 
+
+alter user CP_PROJ_LAB DEFAULT TABLESPACE USERS; 
+
+alter user S_PROJECT DEFAULT TABLESPACE USERS; 
+
+alter user AWS_RO DEFAULT TABLESPACE USERS; 
+
+alter user PPRS DEFAULT TABLESPACE USERS; 
+
+alter user DPA_SCPP DEFAULT TABLESPACE USERS; 
+
+alter user P_PROJECT DEFAULT TABLESPACE USERS; 
+
+alter user SVCSVCUT DEFAULT TABLESPACE USERS; 
+
+alter user SNOWFLAKE DEFAULT TABLESPACE USERS; 
+
+alter user SVCVC DEFAULT TABLESPACE USERS; 
+
+alter user DPA DEFAULT TABLESPACE USERS; 
+
+alter user SVCSFARO DEFAULT TABLESPACE USERS; 
+
+alter user FRAG DEFAULT TABLESPACE USERS; 
+
+alter user USPCSORCLSVC DEFAULT TABLESPACE USERS; 
+
+alter user DBA_ORACLE DEFAULT TABLESPACE USERS; 
+
+ 
+
+41 rows selected. 
+
+ 
+
+select username, default_tablespace from dba_users; 
+
+ 
+
+DO ON AWS: 
+
+select username, default_tablespace from dba_users where oracle_maintained='Y'; 
+
+select 'alter user '|| USERNAME||' DEFAULT TABLESPACE '||'USERS'||';' from dba_users where oracle_maintained='Y' and default_tablespace='USERS_TEMP'; 
+
+SQL> select username, default_tablespace from dba_users; 
+
+ 
+
+ 
+
+GSMCATUSER 
+
+USERS 
+
+ 
+
+MDDATA 
+
+USERS 
+
+ 
+
+SYSBACKUP 
+
+USERS 
+
+ 
+
+REMOTE_SCHEDULER_AGENT 
+
+USERS 
+
+ 
+
+GSMUSER 
+
+USERS 
+
+ 
+
+SYSRAC 
+
+USERS 
+
+ 
+
+GSMROOTUSER 
+
+USERS 
+
+ 
+
+SI_INFORMTN_SCHEMA 
+
+USERS 
+
+ 
+
+AUDSYS 
+
+USERS 
+
+ 
+
+DIP 
+
+USERS 
+
+ 
+
+ORDPLUGINS 
+
+USERS 
+
+ 
+
+SYSKM 
+
+USERS 
+
+ 
+
+ORDDATA 
+
+USERS 
+
+ 
+
+ORACLE_OCM 
+
+USERS 
+
+ 
+
+SYSDG 
+
+USERS 
+
+ 
+
+ORDSYS 
+
+USERS 
+
+ 
+
+16 rows selected. 
+
+ 
+
+ 
+
+alter user GSMCATUSER DEFAULT TABLESPACE USERS; 
+
+alter user MDDATA DEFAULT TABLESPACE USERS; 
+
+alter user REMOTE_SCHEDULER_AGENT DEFAULT TABLESPACE USERS; 
+
+alter user SYSBACKUP DEFAULT TABLESPACE USERS; 
+
+alter user GSMUSER DEFAULT TABLESPACE USERS; 
+
+alter user GSMROOTUSER DEFAULT TABLESPACE USERS; 
+
+alter user SYSRAC DEFAULT TABLESPACE USERS; 
+
+alter user SI_INFORMTN_SCHEMA DEFAULT TABLESPACE USERS; 
+
+alter user AUDSYS DEFAULT TABLESPACE USERS; 
+
+alter user DIP DEFAULT TABLESPACE USERS; 
+
+alter user ORDPLUGINS DEFAULT TABLESPACE USERS; 
+
+alter user ORDDATA DEFAULT TABLESPACE USERS; 
+
+alter user SYSKM DEFAULT TABLESPACE USERS; 
+
+alter user ORACLE_OCM DEFAULT TABLESPACE USERS; 
+
+alter user ORDSYS DEFAULT TABLESPACE USERS; 
+
+alter user SYSDG DEFAULT TABLESPACE USERS; 
+
+ 
+
+ 
+
+** REMOVE USER TEMP TABLESPACE 
+
+ 
+
+select tablespace_name from dba_tablespaces; 
+
+select username, default_tablespace from dba_users;  
+
+alter database default tablespace USERS; 
+
+DROP TABLESPACE USERS_TEMP INCLUDING CONTENTS AND DATAFILES; 
+
+Use the following queries to find the DBA_ROLE_PRIVS on the ON_PREM DB and move them over to the AWS Destination DB 
+
+ 
+
+select * from DBA_ROLE_PRIVS; 
+
+ 
+
+select * from DBA_ROLE_PRIVS 
+
+where GRANTEE in (Schemas found in “select username from dba_users where oracle_maintained='N';”); 
+
+ 
+
+select * from DBA_ROLE_PRIVS 
+
+where GRANTEE in (Schemas found in “select username from dba_users where oracle_maintained='N';”) 
+
+AND ADMIN_OPTION = 'NO'; 
+
+ 
+
+select * from DBA_ROLE_PRIVS 
+
+where GRANTEE in (Schemas found in “select username from dba_users where oracle_maintained='N';”) 
+
+AND ADMIN_OPTION = 'YES'; 
+
+ 
+
+SET HEADING OFF 
+
+select 'GRANT '||GRANTED_ROLE||' TO '||GRANTEE||';' from DBA_ROLE_PRIVS where GRANTEE in (Schemas found in “select username from dba_users where oracle_maintained='N';”) 
+
+AND ADMIN_OPTION = 'NO'; 
+
+ 
+
+ 
+
+GRANT CPADMIN_SELECT_ROLE TO STCHRISTIANSEN; 
+
+GRANT SVCSFARO_ROLE TO SVCSFARO; 
+
+GRANT CONNECT TO DAALLISON; 
+
+GRANT CONNECT TO PPRS; 
+
+GRANT CONNECT TO USPCSORCLSVC; 
+
+GRANT CONNECT TO TCIMPORT; 
+
+GRANT RESOURCE TO TCLOGIN; 
+
+GRANT LOGGER_ROLE TO SVCWDAP_READER; 
+
+GRANT SELECT_CATALOG_ROLE TO S_FINANCE; 
+
+GRANT FF_PROJECT_ROLE TO S_FINANCE; 
+
+GRANT CONNECT TO TM1USER; 
+
+GRANT TM1USER_ROLE TO TM1USER; 
+
+GRANT TM1USER_ROLE TO PPRS; 
+
+GRANT RESOURCE TO SVCWDAP; 
+
+GRANT CONNECT TO CPADMIN; 
+
+GRANT RESOURCE TO CPADMIN; 
+
+GRANT RESOURCE TO CPROUSR; 
+
+GRANT CONNECT TO DELTEK; 
+
+GRANT CONNECT TO FRAG; 
+
+GRANT FF_PROJECT_ROLE TO P_PROJECT; 
+
+GRANT RESOURCE TO SWIFTDM; 
+
+GRANT CONNECT TO SVCWDAP; 
+
+GRANT CONNECT TO S_PROJECT; 
+
+GRANT RESOURCE TO DELTEK; 
+
+GRANT CPADMIN_SELECT_ROLE TO DAALLISON; 
+
+GRANT CONNECT TO INTEGRIFY_ADMIN; 
+
+GRANT CONNECT TO CP_PROJ_LAB; 
+
+GRANT RESOURCE TO TCDSI; 
+
+GRANT RESOURCE TO TC_0001; 
+
+GRANT RESOURCE TO TC_0005; 
+
+GRANT DELTEK_SELECT_ROLE TO SVCWDAP_READER; 
+
+GRANT RESOURCE TO SNOWFLAKE; 
+
+GRANT CONNECT TO S_FINANCE; 
+
+GRANT RESOURCE TO CPSYSTEM; 
+
+GRANT CONNECT TO CPLINK_USER; 
+
+GRANT LOGGER_ROLE TO DELOITTE; 
+
+GRANT CONNECT TO SVCSFVP; 
+
+GRANT CONNECT TO TCDSI; 
+
+GRANT RESOURCE TO TC_0000; 
+
+GRANT CONNECT TO TC_0001; 
+
+GRANT CONNECT TO LOGGER_USER; 
+
+GRANT RESOURCE TO CPLINK_USER; 
+
+GRANT SELECT_CATALOG_ROLE TO P_FINANCE; 
+
+GRANT RESOURCE TO DEVOPS; 
+
+GRANT RESOURCE TO TCIMPORT; 
+
+GRANT CONNECT TO TC_0000; 
+
+GRANT CONNECT TO TC_0005; 
+
+GRANT CONNECT TO SVCBOT; 
+
+GRANT LOGGER_ROLE TO SVCWDAP; 
+
+GRANT CONNECT TO SNOWFLAKE; 
+
+GRANT FF_FINANCE_ROLE TO S_FINANCE; 
+
+GRANT FF_PROJECT_ROLE TO S_PROJECT; 
+
+GRANT CPROALL TO CPROUSR; 
+
+GRANT CONNECT TO DELOITTE; 
+
+GRANT RESOURCE TO DELOITTE; 
+
+GRANT CONNECT TO COGNOS_READER; 
+
+GRANT FF_FINANCE_ROLE TO P_FINANCE; 
+
+GRANT FF_PROJECT_ROLE TO P_FINANCE; 
+
+GRANT SELECT_CATALOG_ROLE TO P_PROJECT; 
+
+GRANT SVCSFARO_ROLE TO SVCSFVP; 
+
+GRANT CONNECT TO SVCVC; 
+
+GRANT CONNECT TO DEVOPS; 
+
+GRANT CONNECT TO STCHRISTIANSEN; 
+
+GRANT CONNECT TO CPSYSTEM; 
+
+GRANT CONNECT TO SWIFTDM; 
+
+GRANT CONNECT TO DBA_ORACLE; 
+
+GRANT CONNECT TO TCLOGIN; 
+
+GRANT SELECT_CATALOG_ROLE TO S_PROJECT; 
+
+ 
+
+68 rows selected. 
+
+ 
+
+ 
+
+ 
+
+ 
+
+!! MAKE SURE TO DO WITH ADMIN_OPTION 
+
+ 
+
+SET HEADING OFF 
+
+select 'GRANT '||GRANTED_ROLE||' TO '||GRANTEE||' WITH ADMIN OPTION;' from DBA_ROLE_PRIVS where GRANTEE in (Schemas found in “select username from dba_users where oracle_maintained='N';”) 
+
+AND ADMIN_OPTION = 'YES'; 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+Use the following queries to find the DBA_SYS_PRIVS on the ON_PREM DB and move them over to the AWS Destination DB 
+
+ 
+
+ 
+
+select * from DBA_SYS_PRIVS; 
+
+ 
+
+select * from DBA_SYS_PRIVS 
+
+where grantee in ((Schemas found in “select username from dba_users where oracle_maintained='N';”); 
+
+ 
+
+select * from DBA_SYS_PRIVS 
+
+where grantee in ((Schemas found in “select username from dba_users where oracle_maintained='N';”) 
+
+AND ADMIN_OPTION = 'NO'; 
+
+ 
+
+select * from DBA_SYS_PRIVS 
+
+where grantee in ((Schemas found in “select username from dba_users where oracle_maintained='N';”) 
+
+AND ADMIN_OPTION = 'YES'; 
+
+ 
+
+SET HEADING OFF 
+
+select 'GRANT '||PRIVILEGE||' TO '||GRANTEE||';' from DBA_SYS_PRIVS where GRANTEE in ((Schemas found in “select username from dba_users where oracle_maintained='N';”) 
+
+AND ADMIN_OPTION = 'NO'; 
+
+ 
+
+GRANT CREATE TRIGGER TO DELTEK; 
+
+GRANT CREATE TRIGGER TO CPSYSTEM; 
+
+GRANT CREATE ANY PROCEDURE TO SVCSVCUT; 
+
+GRANT CREATE DATABASE LINK TO CPLINK_USER; 
+
+GRANT CREATE SEQUENCE TO DPA_SCPP; 
+
+GRANT CREATE VIEW TO TC_0001; 
+
+GRANT CREATE SYNONYM TO DELTEK; 
+
+GRANT CREATE SYNONYM TO TCLOGIN; 
+
+GRANT CREATE SYNONYM TO DPA; 
+
+GRANT DELETE ANY TABLE TO DEVOPS; 
+
+GRANT UPDATE ANY TABLE TO SWIFTDM; 
+
+GRANT CREATE TABLE TO DELTEK; 
+
+GRANT UNLIMITED TABLESPACE TO CPADMIN; 
+
+GRANT UNLIMITED TABLESPACE TO TCLOGIN; 
+
+GRANT UNLIMITED TABLESPACE TO DPA_SCPP; 
+
+GRANT CREATE SESSION TO AWS_RO; 
+
+GRANT CREATE SESSION TO DPA; 
+
+GRANT CREATE JOB TO LOGGER_USER; 
+
+GRANT SELECT ANY DICTIONARY TO DPA; 
+
+GRANT CREATE ANY CONTEXT TO LOGGER_USER; 
+
+GRANT CREATE TRIGGER TO CPADMIN; 
+
+GRANT CREATE TRIGGER TO TCIMPORT; 
+
+GRANT CREATE PROCEDURE TO TCLOGIN; 
+
+GRANT CREATE SEQUENCE TO DPA; 
+
+GRANT CREATE VIEW TO SVCWDAP; 
+
+GRANT CREATE VIEW TO TCDSI; 
+
+GRANT CREATE SYNONYM TO CPSYSTEM; 
+
+GRANT CREATE SYNONYM TO TC_0005; 
+
+GRANT DROP ANY INDEX TO SWIFTDM; 
+
+GRANT DELETE ANY TABLE TO SWIFTDM; 
+
+GRANT INSERT ANY TABLE TO SWIFTDM; 
+
+GRANT CREATE TABLE TO SWIFTDM; 
+
+GRANT CREATE TABLE TO LOGGER_USER; 
+
+GRANT UNLIMITED TABLESPACE TO TCDSI; 
+
+GRANT CREATE SESSION TO DELOITTE; 
+
+GRANT CREATE SESSION TO DPA_SCPP; 
+
+GRANT SELECT ANY DICTIONARY TO DPA_SCPP; 
+
+GRANT ANALYZE ANY TO SWIFTDM; 
+
+GRANT CREATE TRIGGER TO TC_0000; 
+
+GRANT CREATE TRIGGER TO TC_0001; 
+
+GRANT CREATE VIEW TO LOGGER_USER; 
+
+GRANT CREATE SYNONYM TO CPLINK_USER; 
+
+GRANT CREATE SYNONYM TO TCIMPORT; 
+
+GRANT CREATE SYNONYM TO TC_0001; 
+
+GRANT DROP ANY INDEX TO DEVOPS; 
+
+GRANT SELECT ANY TABLE TO DELOITTE; 
+
+GRANT SELECT ANY TABLE TO SWIFTDM; 
+
+GRANT DROP ANY TABLE TO DEVOPS; 
+
+GRANT CREATE TABLE TO DEVOPS; 
+
+GRANT CREATE SESSION TO DELPHIX_PROD; 
+
+GRANT CREATE SESSION TO SVCSVCUT; 
+
+GRANT CREATE SESSION TO S_PROJECT; 
+
+GRANT SELECT ANY DICTIONARY TO DELPHIX_PROD; 
+
+GRANT SELECT ANY DICTIONARY TO FRAG; 
+
+GRANT CREATE TRIGGER TO TC_0005; 
+
+GRANT CREATE PROCEDURE TO FRAG; 
+
+GRANT CREATE PROCEDURE TO TCIMPORT; 
+
+GRANT CREATE SEQUENCE TO LOGGER_USER; 
+
+GRANT CREATE VIEW TO CPLINK_USER; 
+
+GRANT CREATE SYNONYM TO DELOITTE; 
+
+GRANT CREATE ANY INDEX TO SWIFTDM; 
+
+GRANT UPDATE ANY TABLE TO DEVOPS; 
+
+GRANT CREATE TABLE TO DELOITTE; 
+
+GRANT UNLIMITED TABLESPACE TO TCIMPORT; 
+
+GRANT UNLIMITED TABLESPACE TO DPA; 
+
+GRANT UNLIMITED TABLESPACE TO CPLINK_USER; 
+
+GRANT CREATE SESSION TO SVCWDAP_READER; 
+
+GRANT CREATE PROCEDURE TO DELTEK; 
+
+GRANT CREATE PROCEDURE TO CPLINK_USER; 
+
+GRANT CREATE PROCEDURE TO LOGGER_USER; 
+
+GRANT CREATE SEQUENCE TO DELTEK; 
+
+GRANT CREATE VIEW TO CPSYSTEM; 
+
+GRANT CREATE VIEW TO DELOITTE; 
+
+GRANT CREATE VIEW TO TCIMPORT; 
+
+GRANT CREATE SYNONYM TO DPA_SCPP; 
+
+GRANT CREATE TABLE TO FRAG; 
+
+GRANT CREATE TABLE TO DPA; 
+
+GRANT ALTER USER TO USPCSORCLSVC; 
+
+GRANT UNLIMITED TABLESPACE TO TC_0000; 
+
+GRANT CREATE SESSION TO P_FINANCE; 
+
+GRANT CREATE SESSION TO P_PROJECT; 
+
+GRANT CREATE SESSION TO S_FINANCE; 
+
+GRANT CREATE TRIGGER TO TCDSI; 
+
+GRANT CREATE PROCEDURE TO CPSYSTEM; 
+
+GRANT CREATE PROCEDURE TO TC_0000; 
+
+GRANT CREATE SEQUENCE TO TC_0005; 
+
+GRANT CREATE VIEW TO DELTEK; 
+
+GRANT CREATE VIEW TO TC_0000; 
+
+GRANT ALTER ANY INDEX TO SWIFTDM; 
+
+GRANT CREATE ANY INDEX TO DEVOPS; 
+
+GRANT ALTER ANY TABLE TO DEVOPS; 
+
+GRANT ALTER ANY TABLE TO SWIFTDM; 
+
+GRANT UNLIMITED TABLESPACE TO TC_0001; 
+
+GRANT UNLIMITED TABLESPACE TO TC_0005; 
+
+GRANT CREATE TRIGGER TO CPLINK_USER; 
+
+GRANT CREATE PROCEDURE TO DELOITTE; 
+
+GRANT CREATE PROCEDURE TO TC_0001; 
+
+GRANT CREATE PROCEDURE TO TC_0005; 
+
+GRANT CREATE SEQUENCE TO DELOITTE; 
+
+GRANT CREATE VIEW TO CPADMIN; 
+
+GRANT CREATE VIEW TO SNOWFLAKE; 
+
+GRANT CREATE VIEW TO TC_0005; 
+
+GRANT INSERT ANY TABLE TO DEVOPS; 
+
+GRANT SELECT ANY TABLE TO COGNOS_READER; 
+
+GRANT SELECT ANY TABLE TO FRAG; 
+
+GRANT CREATE TABLE TO CPLINK_USER; 
+
+GRANT CREATE TABLE TO DBA_ORACLE; 
+
+GRANT ANALYZE ANY TO DEVOPS; 
+
+GRANT CREATE TRIGGER TO DELOITTE; 
+
+GRANT CREATE TRIGGER TO LOGGER_USER; 
+
+GRANT CREATE TRIGGER TO TCLOGIN; 
+
+GRANT CREATE PROCEDURE TO CPADMIN; 
+
+GRANT CREATE PROCEDURE TO TCDSI; 
+
+GRANT CREATE DATABASE LINK TO TC_0005; 
+
+GRANT CREATE VIEW TO TCLOGIN; 
+
+GRANT CREATE SYNONYM TO CPADMIN; 
+
+GRANT CREATE SYNONYM TO TCDSI; 
+
+GRANT CREATE SYNONYM TO TC_0000; 
+
+GRANT ALTER ANY INDEX TO DEVOPS; 
+
+GRANT SELECT ANY TABLE TO DEVOPS; 
+
+GRANT DROP ANY TABLE TO SWIFTDM; 
+
+GRANT CREATE TABLE TO DPA_SCPP; 
+
+GRANT CREATE SESSION TO CPROUSR; 
+
+ 
+
+123 rows selected. 
+
+ 
+
+ 
+
+ 
+
+ 
+
+!! MAKE SURE TO DO WITH ADMIN_OPTION 
+
+ 
+
+ 
+
+SET HEADING OFF 
+
+select 'GRANT '||PRIVILEGE||' TO '||GRANTEE||' WITH ADMIN OPTION;' from DBA_SYS_PRIVS where GRANTEE in ((Schemas found in “select username from dba_users where oracle_maintained='N';”) 
+
+AND ADMIN_OPTION = 'YES'; 
+
+ 
+
+ 
+
+Use the following queries to find the Quota Unlimited in DBA_TS_QUOTAS on the ON_PREM DB and move them over to the AWS Destination DB 
+
+ 
+
+ 
+
+select * from dba_ts_quotas; 
+
+ 
+
+desc dba_ts_quotas 
+
+ 
+
+select * from dba_ts_quotas 
+
+where username in ((Schemas found in “select username from dba_users where oracle_maintained='N';”); 
+
+ 
+
+SET HEADING OFF 
+
+select 'alter user '||USERNAME||' quota unlimited on '||TABLESPACE_NAME||';' from dba_ts_quotas where username in ((Schemas found in “select username from dba_users where oracle_maintained='N';”) 
+
+order by username; 
+
+ 
+
+alter user COGNOS_READER quota unlimited on USERS; 
+
+alter user CPADMIN quota unlimited on COSTPOINT_DATA; 
+
+alter user CPADMIN quota unlimited on COSTPOINT_DYN; 
+
+alter user CPADMIN quota unlimited on COSTPOINT_INDEX; 
+
+alter user CPADMIN quota unlimited on COSTPOINT_RPTDATA; 
+
+alter user CPADMIN quota unlimited on COSTPOINT_RPTINDEX; 
+
+alter user CPADMIN quota unlimited on COSTPOINT_XZDATA; 
+
+alter user CPADMIN quota unlimited on COSTPOINT_XZINDEX; 
+
+alter user CPADMIN quota unlimited on CPMETA_DATA; 
+
+alter user CPADMIN quota unlimited on CPMETA_INDEX; 
+
+alter user CPADMIN quota unlimited on DELOITTE; 
+
+alter user CPLINK_USER quota unlimited on COSTPOINT_DATA; 
+
+alter user CPLINK_USER quota unlimited on COSTPOINT_DYN; 
+
+alter user CPLINK_USER quota unlimited on COSTPOINT_INDEX; 
+
+alter user CPLINK_USER quota unlimited on COSTPOINT_RPTDATA; 
+
+alter user CPLINK_USER quota unlimited on COSTPOINT_RPTINDEX; 
+
+alter user CPLINK_USER quota unlimited on COSTPOINT_XZDATA; 
+
+alter user CPLINK_USER quota unlimited on COSTPOINT_XZINDEX; 
+
+alter user CPLINK_USER quota unlimited on CPMETA_DATA; 
+
+alter user CPLINK_USER quota unlimited on CPMETA_INDEX; 
+
+alter user CPLINK_USER quota unlimited on DELOITTE; 
+
+alter user CPROUSR quota unlimited on USERS; 
+
+alter user CPSYSTEM quota unlimited on COSTPOINT_DATA; 
+
+alter user CPSYSTEM quota unlimited on COSTPOINT_DYN; 
+
+alter user CPSYSTEM quota unlimited on COSTPOINT_INDEX; 
+
+alter user CPSYSTEM quota unlimited on COSTPOINT_RPTDATA; 
+
+alter user CPSYSTEM quota unlimited on COSTPOINT_RPTINDEX; 
+
+alter user CPSYSTEM quota unlimited on COSTPOINT_XZDATA; 
+
+alter user CPSYSTEM quota unlimited on COSTPOINT_XZINDEX; 
+
+alter user CPSYSTEM quota unlimited on CPMETA_DATA; 
+
+alter user CPSYSTEM quota unlimited on CPMETA_INDEX; 
+
+alter user CPSYSTEM quota unlimited on DELOITTE; 
+
+alter user DAALLISON quota unlimited on USERS; 
+
+alter user DBA_ORACLE quota unlimited on USERS; 
+
+alter user DELOITTE quota unlimited on COSTPOINT_DATA; 
+
+alter user DELOITTE quota unlimited on COSTPOINT_DYN; 
+
+alter user DELOITTE quota unlimited on COSTPOINT_INDEX; 
+
+alter user DELOITTE quota unlimited on COSTPOINT_RPTDATA; 
+
+alter user DELOITTE quota unlimited on COSTPOINT_RPTINDEX; 
+
+alter user DELOITTE quota unlimited on COSTPOINT_XZDATA; 
+
+alter user DELOITTE quota unlimited on COSTPOINT_XZINDEX; 
+
+alter user DELOITTE quota unlimited on CPMETA_DATA; 
+
+alter user DELOITTE quota unlimited on CPMETA_INDEX; 
+
+alter user DELOITTE quota unlimited on DELOITTE; 
+
+alter user DELTEK quota unlimited on COSTPOINT_DATA; 
+
+alter user DELTEK quota unlimited on COSTPOINT_DYN; 
+
+alter user DELTEK quota unlimited on COSTPOINT_INDEX; 
+
+alter user DELTEK quota unlimited on COSTPOINT_RPTDATA; 
+
+alter user DELTEK quota unlimited on COSTPOINT_RPTINDEX; 
+
+alter user DELTEK quota unlimited on COSTPOINT_XZDATA; 
+
+alter user DELTEK quota unlimited on COSTPOINT_XZINDEX; 
+
+alter user DELTEK quota unlimited on CPMETA_DATA; 
+
+alter user DELTEK quota unlimited on CPMETA_INDEX; 
+
+alter user DELTEK quota unlimited on DELOITTE; 
+
+alter user DEVOPS quota unlimited on USERS; 
+
+alter user DPA quota unlimited on USERS; 
+
+alter user DPA_SCPP quota unlimited on USERS; 
+
+alter user FRAG quota unlimited on USERS; 
+
+alter user LOGGER_USER quota unlimited on USERS; 
+
+alter user PPRS quota unlimited on USERS; 
+
+alter user P_FINANCE quota unlimited on USERS; 
+
+alter user P_PROJECT quota unlimited on USERS; 
+
+alter user SNOWFLAKE quota unlimited on USERS; 
+
+alter user STCHRISTIANSEN quota unlimited on USERS; 
+
+alter user SVCBOT quota unlimited on USERS; 
+
+alter user SVCSFARO quota unlimited on USERS; 
+
+alter user SVCSFVP quota unlimited on USERS; 
+
+alter user SVCSVCUT quota unlimited on USERS; 
+
+alter user SVCVC quota unlimited on USERS; 
+
+alter user SVCWDAP quota unlimited on USERS; 
+
+alter user SVCWDAP_READER quota unlimited on USERS; 
+
+alter user SWIFTDM quota unlimited on USERS; 
+
+alter user S_FINANCE quota unlimited on USERS; 
+
+alter user S_PROJECT quota unlimited on USERS; 
+
+alter user TCDSI quota unlimited on COSTPOINT_DATA; 
+
+alter user TCIMPORT quota unlimited on COSTPOINT_DATA; 
+
+alter user TCLOGIN quota unlimited on COSTPOINT_DATA; 
+
+alter user TC_0000 quota unlimited on COSTPOINT_DATA; 
+
+alter user TC_0001 quota unlimited on COSTPOINT_DATA; 
+
+alter user TC_0005 quota unlimited on COSTPOINT_DATA; 
+
+alter user TC_0005 quota unlimited on TE_INDEX; 
+
+alter user TC_0005 quota unlimited on CPMETA_DATA; 
+
+alter user TM1USER quota unlimited on DELOITTE; 
+
+alter user USPCSORCLSVC quota unlimited on USERS; 
+
+ 
+
+84 rows selected. 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+!! NOW WE WILL MAKE SURE TO ADD ANY MISSING INDEXES BEFORE WE import any Missing objects  
+
+ 
+
+!! USUALLY IT IS THESE 8 INDEXES THAT END UP MISSING FOR GPS BUT DOBULE CHECK TO MAKE SURE using an excel sheet to compare the ON-PREM DB to the AWS DB 
+
+ 
+
+ 
+
+DELTEK	PK_LINK12_IDX	 
+
+DELTEK	PK_LINK19_IDX	 
+
+DELTEK	PK_LINK27_IDX	 
+
+DELTEK	PK_LINK29_IDX	 
+
+DELTEK	PI_0501 
+
+DELTEK	PI_0276 
+
+DELTEK	PI_0273 
+
+DELTEK	PI_0132 
+
+ 
+
+ 
+
+ 
+
+vi index_script.sql 
+
+cat index_script.sql 
+
+ 
+
+ 
+
+SET LONG 20000 LONGCHUNKSIZE 20000 PAGESIZE 0 LINESIZE 1000 FEEDBACK OFF VERIFY OFF TRIMSPOOL ON 
+
+ 
+
+BEGIN 
+
+   DBMS_METADATA.set_transform_param (DBMS_METADATA.session_transform, 'SQLTERMINATOR', true); 
+
+   DBMS_METADATA.set_transform_param (DBMS_METADATA.session_transform, 'PRETTY', true); 
+
+END; 
+
+/ 
+
+ 
+
+SELECT DBMS_METADATA.get_ddl ('INDEX', index_name, owner) 
+
+FROM   all_indexes 
+
+WHERE  owner      = UPPER('&1') 
+
+AND    index_name = DECODE(UPPER('&2'), 'ALL', index_name, UPPER('&2')); 
+
+ 
+
+SET PAGESIZE 14 LINESIZE 100 FEEDBACK ON VERIFY ON 
+
+ 
+
+CPAS 
+
+sdba 
+
+@index_script.sql 
+
+ 
+
+ 
+
+ 
+
+DELTEK	PK_LINK12_IDX 
+
+ 
+
+CREATE UNIQUE INDEX "DELTEK"."PK_LINK12_IDX" ON "DELTEK"."LINK12" ("UDT01_ID", "UDT02_ID") 
+
+  PCTFREE 10 INITRANS 2 MAXTRANS 255 COMPUTE STATISTICS 
+
+  STORAGE(INITIAL 65536 NEXT 524288 MINEXTENTS 1 MAXEXTENTS 2147483645 
+
+  PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1 
+
+  BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT) 
+
+  TABLESPACE "COSTPOINT_INDEX" 
+
+  PARALLEL ; 
+
+ 
+
+ 
+
+DELTEK	PK_LINK19_IDX 
+
+ 
+
+CREATE UNIQUE INDEX "DELTEK"."PK_LINK19_IDX" ON "DELTEK"."LINK19" ("UDT01_ID", "UDT09_ID") 
+
+  PCTFREE 10 INITRANS 2 MAXTRANS 255 COMPUTE STATISTICS 
+
+  STORAGE( PCTINCREASE 0) 
+
+  TABLESPACE "COSTPOINT_INDEX" 
+
+  PARALLEL ; 
+
+ 
+
+ 
+
+DELTEK	PK_LINK27_IDX	 
+
+ 
+
+CREATE UNIQUE INDEX "DELTEK"."PK_LINK27_IDX" ON "DELTEK"."LINK27" ("UDT02_ID", "UDT07_ID", "CP_COMPANY_CD") 
+
+  PCTFREE 10 INITRANS 2 MAXTRANS 255 COMPUTE STATISTICS 
+
+  STORAGE( PCTINCREASE 0) 
+
+  TABLESPACE "COSTPOINT_INDEX" 
+
+  PARALLEL ; 
+
+ 
+
+ 
+
+DELTEK	PK_LINK29_IDX	 
+
+ 
+
+CREATE UNIQUE INDEX "DELTEK"."PK_LINK29_IDX" ON "DELTEK"."LINK29" ("UDT02_ID", "UDT09_ID") 
+
+  PCTFREE 10 INITRANS 2 MAXTRANS 255 COMPUTE STATISTICS 
+
+  STORAGE( PCTINCREASE 0) 
+
+  TABLESPACE "COSTPOINT_INDEX" 
+
+  PARALLEL ; 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+DELTEK	PI_0501 
+
+ 
+
+CREATE UNIQUE INDEX "DELTEK"."PI_0501" ON "DELTEK"."EMPL_LAB_INFO" ("EMPL_ID", "EFFECT_DT") 
+
+  PCTFREE 10 INITRANS 2 MAXTRANS 255 COMPUTE STATISTICS 
+
+  STORAGE(INITIAL 65536 NEXT 524288 MINEXTENTS 1 MAXEXTENTS 2147483645 
+
+  PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1 
+
+  BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT) 
+
+  TABLESPACE "COSTPOINT_INDEX" 
+
+  PARALLEL ; 
+
+ 
+
+ 
+
+DELTEK	PI_0276 
+
+ 
+
+CREATE UNIQUE INDEX "DELTEK"."PI_0276" ON "DELTEK"."POOL_INFO" ("ALLOC_GRP_NO", "FY_CD", "POOL_NO") 
+
+  PCTFREE 10 INITRANS 2 MAXTRANS 255 COMPUTE STATISTICS 
+
+  STORAGE(INITIAL 65536 NEXT 524288 MINEXTENTS 1 MAXEXTENTS 2147483645 
+
+  PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1 
+
+  BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT) 
+
+  TABLESPACE "COSTPOINT_INDEX" 
+
+  PARALLEL ; 
+
+ 
+
+   
+
+DELTEK	PI_0273 
+
+ 
+
+CREATE UNIQUE INDEX "DELTEK"."PI_0273" ON "DELTEK"."POOL_ALLOC" ("POOL_NO", "FY_CD", "ALLOC_GRP_NO") 
+
+  PCTFREE 10 INITRANS 2 MAXTRANS 255 COMPUTE STATISTICS 
+
+  STORAGE(INITIAL 65536 NEXT 524288 MINEXTENTS 1 MAXEXTENTS 2147483645 
+
+  PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1 
+
+  BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT) 
+
+  TABLESPACE "COSTPOINT_INDEX" 
+
+  PARALLEL ; 
+
+ 
+
+   
+
+DELTEK	PI_0132 
+
+ 
+
+CREATE UNIQUE INDEX "DELTEK"."PI_0132" ON "DELTEK"."GL_CONFIG" ("COMPANY_ID") 
+
+  PCTFREE 10 INITRANS 2 MAXTRANS 255 COMPUTE STATISTICS 
+
+  STORAGE(INITIAL 65536 NEXT 524288 MINEXTENTS 1 MAXEXTENTS 2147483645 
+
+  PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1 
+
+  BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT) 
+
+  TABLESPACE "COSTPOINT_INDEX" 
+
+  PARALLEL ; 
+
+ 
+
+ 
+
+AWS 
+
+ 
+
+set linesize 300 
+
+select owner,index_name,table_owner from dba_indexes where index_name in ('PI_0501','PI_0276','PI_0273','PI_0132','PK_LINK12_IDX','PK_LINK19_IDX','PK_LINK27_IDX','PK_LINK29_IDX') order by index_name asc; 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ONCE YOU HAVE ADDED THE MISSING INDEXES, IT IS NOW TIME TO EXPORT THE OBJECTS FROM THE ON_PREM DB TO THE AWS DB 
+
+ 
+
+ 
+
+ 
+
+On-Prem: 
+
+CHANGE ENV CPAS 
+
+SELECT dbms_flashback.get_system_change_number FROM DUAL; 
+
+GET_SYSTEM_CHANGE_NUMBER 
+
+------------------------ 
+
+              20604594809 
+
+   
+
+set linesize 200 
+
+col current_scn format 99999999999999 
+
+select name,db_unique_name,open_mode,log_mode,current_scn,database_role from v$database;			   
+
+ 
+
+ 
+
+On-Prem: 
+
+CHANGE ENV CPAS 
+
+cd /orainstall/CPAS_XTTS 
+
+expdp system directory=DPUMP_TTS logfile=DDL_CPAS.log dumpfile=DDL_CPAS.dmp parallel=6 full=Y include=SEQUENCE,function,TYPE,view,PROCEDURE,package,package_body,DB_LINK,SYNONYM,MATERIALIZED_VIEW,TRIGGER,ROLE,GRANT,USER,PROFILE flashback_scn = 20604594809 
+
+ 
+
+scp DDL_CPAS.dmp oradtk@usawsenast00134:/orainstall/CPAS_XTTS 
+
+ 
+
+ 
+
+AWS: 
+
+CHANGE ENV CPAS 
+
+cd /orainstall/CPAS_XTTS 
+
+ 
+
+impdp system directory=DPUMP_TTS logfile=DDL_CPAS.log dumpfile=DDL_CPAS.dmp parallel=6 full=Y include=SEQUENCE,function,TYPE,view,PROCEDURE,package,package_body,DB_LINK,SYNONYM,MATERIALIZED_VIEW,TRIGGER,ROLE,GRANT,USER,PROFILE 
+
+ 
+
+tail -f nohup.out 
+
+ 
+
+ 
+
+ONCE THE IMPORT OF ALL THE OBJECTS IS COMPLETE DO A POST CHECK ON THE OBJECT COUNT 
+
+ 
+
+AWS & ON-PREM 
+
+ 
+
+set pages 300 lines 300 
+
+col owner for a20 
+
+BREAK ON owner SKIP 1 
+
+COMPUTE COUNT OF status ON owner 
+
+select owner,object_type,status,count(object_name) from dba_objects where owner in (Schemas found in “select username from dba_users where oracle_maintained='N';”) group by owner,object_type,status order by owner; 
+
+ 
+
+select segment_type,round(sum(bytes)/1024/1024) as SIZE_MB from dba_segments where owner in (Schemas found in “select username from dba_users where oracle_maintained='N';”) group by segment_type order by 2 desc; 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+Finally, use the following queries to find the DBA_TAB_PRIVS on the ON_PREM DB and move them over to the AWS Destination DB 
+
+ 
+
+ 
+
+** Run this command to get the below o/p in on-prem and update the usernames  (select 'GRANT '||PRIVILEGE||' ON '||OWNER||'.'||TABLE_NAME||' TO '||GRANTEE||';' from DBA_TAB_PRIVS where GRANTEE in ('CALENDARXML','ORGANIZER','VPRATHIPATI','ORG_MIG1','GODATA','DOCAPP','STOW','ASPNET','tirugou','DYUH');)** 
+
+ 
+
+ 
+
+ON-PREM 
+
+ 
+
+select * from DBA_TAB_PRIVS; 
+
+ 
+
+select * from DBA_TAB_PRIVS 
+
+where GRANTEE in (Schemas found in “select username from dba_users where oracle_maintained='N';”); 
+
+ 
+
+select * from DBA_TAB_PRIVS 
+
+where GRANTEE in (Schemas found in “select username from dba_users where oracle_maintained='N';”) 
+
+AND GRANTABLE = 'NO'; 
+
+ 
+
+select * from DBA_TAB_PRIVS 
+
+where GRANTEE in (Schemas found in “select username from dba_users where oracle_maintained='N';”) 
+
+AND GRANTABLE = 'YES'; 
+
+ 
+
+SET HEADING OFF 
+
+select 'GRANT '||PRIVILEGE||' ON '||OWNER||'.'||TABLE_NAME||' TO '||GRANTEE||';' from DBA_TAB_PRIVS where GRANTEE in (Schemas found in “select username from dba_users where oracle_maintained='N';”); 
+
+ 
+
+ON-PREM 
+
+ 
+
+spool GRANTS_CPAS_SQL_FILE.sql 
+
+SET HEADING OFF 
+
+select 'GRANT '||PRIVILEGE||' ON '||OWNER||'.'||TABLE_NAME||' TO '||GRANTEE||';' from DBA_TAB_PRIVS where GRANTEE in (Schemas found in “select username from dba_users where oracle_maintained='N';”) 
+
+AND GRANTABLE = 'NO'; 
+
+spool off; 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+MAKE SURE TO DO GRANTABLE OPTION AS WELL 
+
+ 
+
+spool GRANTS_CPAS_SQL_FILE_2.sql 
+
+SET HEADING OFF 
+
+select 'GRANT '||PRIVILEGE||' ON '||OWNER||'.'||TABLE_NAME||' TO '||GRANTEE||' WITH GRANT OPTION;' from DBA_TAB_PRIVS where GRANTEE in (Schemas found in “select username from dba_users where oracle_maintained='N';”) 
+
+AND GRANTABLE = 'YES'; 
+
+spool off; 
+
+ 
+
+ 
+
+ 
+
+-!! Use NOTEPAD OR VI to correct any spaces between the grants and copy the over to the AWS DB 
+
+ 
+
+vi GRANTS_CPAS_SQL_FILE.sql 
+
+ 
+
+scp GRANTS_CPAS_SQL_FILE.sql oradtk@usawsenaqa00110:/orainstall/CPAS_XTTS 
+
+ 
+
+ 
+
+AWS 
+
+ 
+
+sdba 
+
+@GRANTS_CPAS_SQL_FILE.sql 
+
+ 
+
+ 
+
+!!!* MAKE SURE TO ADD THESE GRANTS FOR KENDALL TO COMPLETE THE APP INSTALLATION 
+
+ 
+
+GRANT INHERIT PRIVILEGES ON SYSTEM TO DELOITTE; 
+
+GRANT CREATE SESSION TO CPADMIN; 
+
+GRANT CONNECT TO CPADMIN; 
+
+GRANT RESOURCE TO CPADMIN; 
+
+GRANT CREATE ANY TABLE TO DELTEK; 
+
+ 
+
+ONCE KENDALL HAS COMPLETED THE APP INSTALLATION REVOKE THE FOLLOWING COMMAND  
+
+revoke create any table from DELTEK; 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+Lastly run the @utlrp.sql script on AWS DB and take a backup of the database. 
+
+ 
+
+SELECT substrb(owner,1,20)OWNER, 
+
+substrb(object_name,1,30)OBJECT_NAME, 
+
+substrb(object_type,1,15)OBJECT_TYPE 
+
+FROM DBA_OBJECTS 
+
+WHERE STATUS = 'INVALID' 
+
+ORDER BY OWNER, OBJECT_NAME, OBJECT_TYPE; 
+
+ 
+
+ 
+
+SET PAGESIZE 80 
+
+set linesize 100 
+
+col owner format a15 
+
+col object_type format a20 
+
+col status format a10 
+
+col object_name format a35 
+
+BREAK ON owner SKIP 1 
+
+TTITLE SKIP 1 CENTER "DATABASE - INVALID OBJECTS" 
+
+COMPUTE COUNT OF status ON owner 
+
+select owner, object_type,status, object_name 
+
+from dba_objects 
+
+where status='INVALID' 
+
+order by owner, object_type; 
+
+ 
+
+ 
+
+@$ORACLE_HOME/rdbms/admin/utlrp.sql 
+
+ 
+
+Run @utlrp.sql 
 
 
 
