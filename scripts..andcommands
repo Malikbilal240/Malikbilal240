@@ -1,0 +1,4303 @@
+check the space you are going to unzip patch
+cd /oraexp/EMStage  
+cd /oraexp/EMStage/Oct2025
+mkdir Oct2025
+38273545
+
+
+38194382
+38291812
+
+
+Check opatch version
+mv OPatch OPatch_oct25
+copy opatch file to $OH
+cp -r OPatch $OH
+
+unzip opatch
+ 
+check opatch version again
+
+unzip patch 
+
+cd bin 
+
+dbshutALL.ksh
+
+
+apply two patched
+
+opatch lsinventory |grep applied
+
+after patching 
+
+in primary,,,,
+
+cd bin
+
+startdbALLUpgrade.ksh
+
+startup upgrade;
+
+cd /oraexp/EMStage 
+
+Patch_Script_Execute.ksh      (db patch in primary onlyh )
+cd $ORACLE_HOME/OPatch
+./datapatch -verbose
+
+cd bin
+
+  or
+shut immediate
+
+dbstartALL.ksh
+lsnrctl status 
+fp smon
+. set_AH
+
+emctl start agent
+
+emctl status agent
+
+in primary only.....
+
+select name,open_mode from v$database;
+
+set pages 300 lines 300          
+col action form a12
+col version form a40
+col description form a70
+col action_date form a20
+col ACTION_TIME for a38 
+select PATCH_ID,ACTION,STATUS,ACTION_TIME,DESCRIPTION from dba_registry_sqlpatch order by ACTION_TIME;
+
+=====================================
+For standby database
+start listener
+
+lsnrctl status 
+lsnrctl start
+. set_AH
+emctl start agent 
+emctl status agent
+
+startup nomount;
+
+alter database mount standby database;
+in primary
+dgmgrl /
+ 
+show configuration; to check the sync
+ 
+
+ps -ef | grep [o]patch
+
+SQL> startup upgrade;
+=============================================================
+
+SELECT s.sid,
+       s.serial#,
+       s.username,
+       s.status,
+       s.sql_id,
+       s.sql_child_number
+FROM v$session s
+WHERE s.status = 'ACTIVE'
+  AND s.username IS NOT NULL
+  AND s.sql_id IS NOT NULL;
+  
+  
+SELECT sql_id, sql_text
+FROM v$sql
+WHERE sql_id = '3mwnvaww8p4h4';  
+
+
+manually ...
+./datapatch -verbose
+
+
+
+
+export ORACLE_HOME=/u01/app/oracle/product/19.0/db_1
+export PATH=$PATH:$ORACLE_HOME
+
+
+
+export PATH=$ORACLE_HOME/OPatch:$PATH
+
+
+
+
+
+
+RUN
+        {
+        allocate channel ch1 type disk;
+        allocate channel ch2 type disk;
+        allocate channel ch3 type disk;
+        allocate channel ch4 type disk;
+        sql 'alter system archive log current';
+        sql 'alter database backup controlfile to trace';
+        BACKUP archivelog all TAG 'ARC_LOG_Bckp'
+        delete all input
+        FORMAT '$BackupFileDirectory/al_%t_%s_p%p'
+        CURRENT CONTROLFILE TAG 'cf1'
+        FORMAT '$BackupFileDirectory/cf_%t_%s_p%p'
+        SPFILE TAG 'sp1'
+        FORMAT '$BackupFileDirectory/sp_%t_%s_p%p';
+        RELEASE channel ch1;
+        RELEASE channel ch2;
+        RELEASE channel ch3;
+        RELEASE channel ch4;
+        }
+       exit;
+	   
+	   
+	   select file_id ,file_name from dba_tablespaces where tablespace_name=
+	   
+	   
+	   
+	   
+	   
+	   
+	   WARNING: Following components are NOT in a valid state.
+         This could cause patching failure. If it does, consider
+         running utlrp.sql to bring components to VALID state.
+         Then, re-run datapatch.
+
+         CT : XOQ [INVALID]
+BT:/u01/app/oracle/product/19.0/db_1:Y
+ASP1:/u01/app/oracle/product/19.0/db_1:Y
+ASP2:/u01/app/oracle/product/19.0/db_1:Y
+ASP3:/u01/app/oracle/product/19.0/db_1:Y
+COS1:/u01/app/oracle/product/19.0/db_1:Y
+COS2:/u01/app/oracle/product/19.0/db_1:Y
+COP1:/u01/app/oracle/product/19.0/db_1:Y
+IHR1:/u01/app/oracle/product/19.0/db_1:Y
+IHR2:/u01/app/oracle/product/19.0/db_1:Y
+IHR3:/u01/app/oracle/product/19.0/db_1:Y
+COP2:/u01/app/oracle/product/19.0/db_1:Y
+
+
+startup nomount;
+
+alter database mount standby database;
+
+
+
+ORA-32004: obsolete or deprecated parameter(s) specified for RDBMS instance
+
+Hi Team i was about to start working on dataguard Matt pinged me Antonio and 
+Michael work on the standby database build.
+
+drwxr-x--- 15 oradba oinstall  4096 Oct 29 15:15 OPatch
+[ushydi0208 oradba TEST1]>  opatch version
+/u01/app/oracle/product/19.0/db_1/OPatch/opatch: line 839: [: too many arguments
+/u01/app/oracle/product/19.0/db_1/OPatch/opatch: line 839: [: too many arguments
+Java (1.7) could not be located. OPatch cannot proceed!
+OPatch returns with error code = 1
+[ushydi0208 oradba TEST1]> ls -lrt
+
+
+
+cd $ORACLE_HOME/OPatch
+[usawstax05580 oraias ASP2]> ./datapatch -verbose
+SQL Patching tool version 19.29.0.0.0 Production on Wed Oct 29 12:14:57 2025
+Copyright (c) 2012, 2025, Oracle.  All rights reserved.
+
+Log file for this invocation: /u01/app/oracle/cfgtoollogs/sqlpatch/sqlpatch_3020923_2025_10_29_12_14_57/sqlpatch_invocation.log
+
+Connecting to database...OK
+Gathering database info...done
+Bootstrapping registry and package to current versions...done
+Error: prereq checks failed!
+verify_queryable_inventory returned ORA-20001: Latest xml inventory is not loaded into table
+Prereq check failed, exiting without installing any patches.
+
+Please refer to MOS Note 1609718.1 and/or the invocation log
+/u01/app/oracle/cfgtoollogs/sqlpatch/sqlpatch_3020923_2025_10_29_12_14_57/sqlpatch_invocation.log
+for information on how to resolve the above errors.
+
+SQL Patching tool complete on Wed Oct 29 12:15:26 2025
+
+python learning
+===============
+udemy 
+inian axen
+
+
+KZOLKIEWICZ
+0987654321
+
+
+PTLDV1
+GESRPDV1
+ORGMIG
+ORGDV4
+ORGDV1
+BTDV1
+IHRDEV1
+ORGDV5
+IHRDEV2
+CTDV1
+
+
+LIBPATH=/u01/app/oracle/product/13.4.0/agent13c/agent_13.4.0.0.0/lib:/u01/app/oracle/product/13.4.0/agent13c/agent_13.4.0.0.0/jlib
+LD_LIBRARYPATH=/u01/app/oracle/product/13.4.0/agent13c/agent_13.4.0.0.0/lib:/u01/app/oracle/product/13.4.0/agent13c/agent_13.4.0.0.0/jlib
+
+export AGENT_HOME=/u01/app/oracle/product/13.4.0/agent13c/agent_13.4.0.0.0
+export LD_LIBRARYPATH=$ORACLE_HOME/lib:$LD_LIBRARYPATH
+
+
+
+
+
+[aw0706l003 orasym APASYMP]> opatch apply
+Oracle Interim Patch Installer version 12.2.0.1.48
+Copyright (c) 2025, Oracle Corporation.  All rights reserved.
+
+
+Oracle Home       : /u01/app/oracle/product/19.0/db_1
+Central Inventory : /u01/app/oraInventory
+   from           : /u01/app/oracle/product/19.0/db_1/oraInst.loc
+OPatch version    : 12.2.0.1.48
+OUI version       : 12.2.0.7.0
+Log file location : /u01/app/oracle/product/19.0/db_1/cfgtoollogs/opatch/opatch2025-11-11_12-44-31PM_1.log
+
+Verifying environment and performing prerequisite checks...
+                 Prerequisite check "CheckSystemCommandAvailable" failed.
+The details are:
+Missing command :arMissing command :make
+UtilSession failed:
+Prerequisite check "CheckSystemCommandAvailable" failed.
+Log file location: /u01/app/oracle/product/19.0/db_1/cfgtoollogs/opatch/opatch2025-11-11_12-44-31PM_1.log
+
+OPatch failed with error code 73
+[aw0706l003 orasym APASYMP]>
+
+
+
+Adding patches to installation queue and performing prereq checks...done
+Installation queue:
+  The following interim patches will be rolled back:
+    37847857 (OJVM RELEASE UPDATE: 19.28.0.0.250715 (37847857))
+  Patch 38291812 (Database Release Update : 19.29.0.0.251021 (38291812)):
+    Apply from 19.28.0.0.0 Release_Update 250705030417 to 19.29.0.0.0 Release_Update 251002005342
+  The following interim patches will be applied:
+    38194382 (OJVM RELEASE UPDATE: 19.29.0.0.251021 (38194382))
+
+
+WARNING: Following components are NOT in a valid state.
+         This could cause patching failure. If it does, consider
+         running utlrp.sql to bring components to VALID state.
+         Then, re-run datapatch.
+
+         CT : XOQ [INVALID]
+
+Installing patches...
+
+
+
+
+
+COP2
+IHR3
+ASP1
+ASP2
+ASP3
+BT
+COS2
+COS1
+IHR1
+COP1
+
+
+startup nomount;
+
+alter database mount standby database;
+
+oraias   1135218       1  0 03:47 ?        00:00:00 ora_mrp0_COP2
+[usawstaxbc00051 oraias IHR3]>
+
+
+
+SQL> startup upgrade;
+ORACLE instance started.
+
+Total System Global Area 1.9998E+10 bytes
+Fixed Size                  8949856 bytes
+Variable Size            2684354560 bytes
+Database Buffers         1.7247E+10 bytes
+Redo Buffers               58155008 bytes
+Database mounted.
+Database opened.
+SQL> exit
+Disconnected from Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production
+Version 19.29.0.0.0
+[usawstax05784 oraias CT]> cd $ORACLE_HOME/OPatch
+[usawstax05784 oraias CT]> ./datapatch -verbose
+SQL Patching tool version 19.29.0.0.0 Production on Sun Nov 23 03:18:22 2025
+Copyright (c) 2012, 2025, Oracle.  All rights reserved.
+
+Log file for this invocation: /u01/app/oracle/cfgtoollogs/sqlpatch/sqlpatch_2207021_2025_11_23_03_18_22/sqlpatch_invocation.log
+
+Connecting to database...OK
+
+
+SELECT object_name, object_type, status FROM dba_objects WHERE owner = 'RCATCT' AND status != 'VALID';
+
+@$ORACLE_HOME/rdbms/admin/utlrp.sql
+--------------------------------------------------------
+Dataguard commnads ...
+select name,open_mode,database_role from v$database;
+
+>to check log gaps between primary and standby databases...
+in primary.
+archive log list;
+
+in standby database.
+select max(sequence#) from v$archived_log where applied= 'YES';
+
+select process,client_process,status,thread#,sequence#,block#,blocks from v$managed_standby;
+has context menu
+shut immediate: 
+startup nomount;
+alter database mount standby database;
+
+alter database recover managed standby database disconnect from session;
+
+ALTER DATABASE RECOVER MANAGED STANDBY DATABASE CANCEL;
+
+=============================================
+
+scp p37262172_190000_Linux-x86-64.zip p6880880_190000_Linux-x86-64.zip oradba@USHDC8522:/oraexp/EMStage/Jan2025;
+USAWSTAX05784 oraias...
+Elc;30BtpElc;30Btp
+
+===============================
+BCT commands.
+
+SELECT * FROM V$BLOCK_CHANGE_TRACKING;
+ALTER DATABASE ENABLE BLOCK CHANGE TRACKING USING FILE '/opt/data/EMASYMP/rman_change_track.dbf';
+alter database disable block change tracking;
+
+
+select * from USER_ROLE_PRIVS where USERNAME='CALRAD';
+ 
+select privilege 
+
+from dba_sys_privs 
+
+where grantee='CALRAD' 
+
+order by 1;
+ =============================
+===================================================================
+https://teams.microsoft.com/l/message/19:7e361649996f4f14b68699a70e89940c@thread.v2/1730212184156?context=%7B%22contextType%22%3A%22chat%22%7D
+
+
+show parameter archive; ---in sdba 
+
+check log_arc_dest _1 and _2 must be enable 
+
+alter system set log_archive_dest_state_2=ENABLE;
+ 
+and if still issus 
+
+
+dgmgrl /
+edit database 'EMASYMP_GDW' set state=online;
+ 
+edit database 'EMASYMP_GDE' set state=apply-on;
+ 
+ 
+ 
+SELECT INSTANCE_NAME, STATUS, DATABASE_STATUS FROM V$INSTANCE;
+ 
+select name,open_mode from v$database;
+chec k with secondary ta 
+
+and prumary ---alter system switch logfile; to redo files happen in secondary
+
+To check both primary and standby are in sync
+Hi Team,
+
+Data guard status is in sync now.
+
+DGMGRL> show configuration;
+
+Configuration - SYMP_DG
+
+  Protection Mode: MaxPerformance
+  Members:
+  SYMP_HDC - Primary database
+    SYMP_NDC - Physical standby database
+
+Fast-Start Failover:  Disabled
+
+Configuration Status:
+SUCCESS   (status updated 29 seconds ago)
+
+ ==========================================
+ 
+[usdhc8915 oraias CT]> python Oracle19.0-Upgrade-V1.py
+exec(): 0509-036 Cannot load program python because of the following errors:
+        0509-150   Dependent module /u01/app/oracle/product/12.2.0.1/db_1/lib/libexpat.a(libexpat.so.1) could not be loaded.
+        0509-152   Member libexpat.so.1 is not found in archive
+
+To run the python script first we need to export this command .\\
+export LIBPATH=/opt/freeware/lib:$LIBPATH
+=====================================
+status gather command.
+execute dbms_stats.gather_table_stats(ownname => 'GAE17', tabname =>'TEMP_PARAM_POLICY', estimate_percent =>DBMS_STATS.AUTO_SAMPLE_SIZE, method_opt => 'FOR ALL COLUMNS SIZEAUTO');
+
+========================================================================================================
+checking account locks
+
+col USERNAME for a15
+SELECT username, account_status, created, lock_date, expiry_date
+  FROM dba_users
+WHERE account_status != 'LOCK';SQL>   2    3
+
+find /u01/app/oracle/admin/TOOLSA/adump -type f -mtime +7 -name '*.aud' -exec rm -f {} \;
+
+/u01/app/oracle/diag/rdbms/orgprod1_e1ap/ORGPROD1/trace
+find /u01/app/oracle/diag/rdbms/orgprod1_e1ap/ORGPROD1/trace -type f -mtime +5 -name '*.aud' -exec rm -f {} \;
+
+/u01/app/oracle/diag/rdbms/orgprod1_e1ap/ORGPROD1/trace
+
+
+find *.trc -mtime +2 -exec rm {} \;
+find *.trm -mtime +2 -exec rm {} \;
+find /u01/app/oracle/admin/PTST1/adump -type f -mtime +2 -name '*.aud' -exec rm -f {} \;
+--------------------
+DGMGRL> show configuration
+
+Configuration - SCPP_HDC.US.DELOITTE.COM
+
+  Protection Mode: MaxPerformance
+  Members:
+  SCPP_HDC - Primary database
+    SCPP_NDC - Physical standby database
+    SCPP_RPT - Physical standby database
+
+Fast-Start Failover:  Disabled
+
+Configuration Status:
+SUCCESS   (status updated 53 seconds ago)
+
+TY5_nxK6#3H2
+
+TY5_nxK6#1H1
+
+scp Patch_Script_Execute.ksh oradba@USHDC8522:/oraexp/EMStage
+=======
+SQL>
+SQL> select max(sequence#) from v$archived_log where applied= 'YES';
+
+MAX(SEQUENCE#)
+--------------
+         13939
+
+SQL> archive log list
+Database log mode              Archive Mode
+Automatic archival             Enabled
+Archive destination            /archive/APASYMP
+Oldest online log sequence     13
+Next log sequence to archive   16
+Current log sequence           16
+SQL>
+------------f
+col STATUS format a10
+col hrs format 999.99
+select SESSION_KEY, INPUT_TYPE, STATUS,to_char(START_TIME,'mm/dd/yy hh24:mi') start_time,
+to_char(END_TIME,'mm/dd/yy hh24:mi') end_time,elapsed_seconds/3600 hrs from V$RMAN_BACKUP_JOB_DETAILS
+order by session_key;
+
+---------------------
+
+
+SELECT process, status, sequence#, block#, blocks 
+FROM v$managed_standby 
+WHERE process = 'MRP';
+
+RUN
+{
+allocate channel ch1 type disk format '/efs/catalog/usawstaxst00432/TOOLSB/ARCHIVELOGS/al_%t_%s_p%p';
+sql 'alter system archive log current';
+sql 'alter database backup controlfile to trace';
+backup archivelog all delete all input;
+RELEASE channel ch1;
+}
+
+exit;
+=========exit;
+Backup mountpoint is not availabel...
+
+[usawstaxst00432 oraias TOOLSB]> cd /efs
+[usawstaxst00432 oraias TOOLSB]> ll
+==========
+space issue...
+[euawstaxst00016 oraias DEORGS1]> pwd
+/u01/app/oracle/diag/clients/user_oraias/host_862561039_110/trace
+===========
+
+[usawstaxde00717 oraias PTLDV1]> cat GESRPDV1_run_backup_archivelog.rman
+RUN
+{
+allocate channel ch1 type disk format '/efs-ges-backup-west/ges-non-prod/usawstaxde00717/GESRPDV1/ARCHIVELOGS/al_%t_%s_p%p';
+#sql 'alter system archive log current';
+#sql 'alter database backup controlfile to trace';
+backup archivelog all delete all input;
+RELEASE channel ch1;
+}
+
+exit;
+ataguard commands...
+select name,open_mode,database_role from v$database;
+
+>to check log gaps between primary and standby databases...
+For primary...
+archive log list;
+
+For standby..........
+select max(sequence#) from v$archived_log where applied= 'YES';
+-----------------------------------------------------------------
+How to restart standby database..
+shutimmediate;
+startup nomount;
+alter database mount standby database;
+alter database recover managed standby database disconnect from session;
+=========
+SELECT profile FROM dba_users WHERE username = 'USER28';
+=============================
+Switch over activity
+
+
+check status and configuration
+ 
+----st to check sys passowrd 
+
+dgmgrl /
+
+show configuration;
+----take the scree shots before and after failover 
+dgmgrl /
+
+Connect SYS/M4tgQ1yh@IHR1_E1AP
+Show configuration;
+
+Switchover to 'IHR1_W1AS';  
+ 
+---screen shot failover havppen
+ 
+check SIDPrimary is in mount mode and in sync or not-------- select open_mode from v$database;
+alter system switch logfile;
+ 
+Check case sensitive parameter in DB is TRUE
+in sdba :  show parameter sensitive
+ 
+show parameter service; ---for conection the database to tell the users 
+
+
+
+=======
+queries to start active dataguard standby db..
+startup mount;
+alter database open read only;
+alter database recover managed standby database using current logfile disconnect from session;
+
+
+---------------------------------------------------------------
+How to add datafilerelated
+To check the total usage of datafile.
+
+
+SELECT
+    file_name,
+    bytes / 1024 / 1024 AS total_mb,
+    maxbytes / 1024 / 1024 AS max_mb,
+    (maxbytes - bytes) / 1024 / 1024 AS remaining_mb
+FROM
+    dba_data_files
+WHERE
+    tablespace_name = 'COSTPOINT_XZDATA';
+----------------------------------------------------------
+SET PAGESIZE 140 LINESIZE 200;
+
+set colsep |
+ 
+SELECT tablespace_name,
+
+       size_mb,
+
+       free_mb,
+
+       max_size_mb,
+
+       max_free_mb,
+
+       TRUNC((max_free_mb/max_size_mb) * 100) AS free_pct,
+
+       ROUND((max_size_mb-max_free_mb)/max_size_mb*10,2) AS used_pct
+
+FROM   (
+
+        SELECT a.tablespace_name,
+
+               b.size_mb,
+
+               a.free_mb,
+
+               b.max_size_mb,
+
+               a.free_mb + (b.max_size_mb - b.size_mb) AS max_free_mb
+
+        FROM   (SELECT tablespace_name,
+
+                       TRUNC(SUM(bytes)/1024/1024) AS free_mb
+
+                FROM   dba_free_space
+
+                GROUP BY tablespace_name) a,
+
+               (SELECT tablespace_name,
+
+                       TRUNC(SUM(bytes)/1024/1024) AS size_mb,
+
+                       TRUNC(SUM(GREATEST(bytes,maxbytes))/1024/1024) AS max_size_mb
+
+                FROM   dba_data_files
+
+                GROUP BY tablespace_name) b
+
+        WHERE  a.tablespace_name = b.tablespace_name
+
+       ) 
+
+	   where tablespace_name = 'COSTPOINT_RPTDATA'
+
+ORDER BY tablespace_name;
+ 
+
+SELECT
+    TABLESPACE_NAME,
+    SUM(BYTES_USED) / 1024 / 1024 AS USED_MB,
+    SUM(BYTES_FREE) / 1024 / 1024 AS FREE_MB,
+    SUM(BYTES) / 1024 / 1024 AS TOTAL_MB,
+    ROUND((SUM(BYTES_USED) / SUM(BYTES)) * 100, 2) AS PERCENT_USED
+FROM
+    V$TEMP_SPACE_HEADER
+GROUP BY
+    TABLESPACE_NAME;
+SELECT df.tablespace_name "Tablespace",
+  totalusedspace "Used MB",
+  (df.totalspace - tu.totalusedspace) "Free MB",
+  df.totalspace "Total MB",
+  ROUND(100 * ( (df.totalspace - tu.totalusedspace)/ df.totalspace)) "% Free"
+FROM
+  (SELECT tablespace_name,
+    ROUND(SUM(bytes) / 1048576) TotalSpace
+  FROM dba_data_files
+  GROUP BY tablespace_name
+  ) df,
+  (SELECT ROUND(SUM(bytes)/(1024*1024)) totalusedspace,
+    tablespace_name
+  FROM dba_segments
+  GROUP BY tablespace_name
+  ) tu
+WHERE df.tablespace_name = 'COSTPOINT_DATA';
+----------------------------------------------------------------
+To check how many datafiles are there in a tablespace
+
+
+select tablespace_name, status from dba_tablespaces;
+ 
+ 
+ ======================================================
+SELECT TABLESPACE_NAME, BYTES/1024/1024 AS MB_USED, MAXBYTES/1024/1024 AS MB_MAX
+    FROM DBA_DATA_FILES
+    WHERE TABLESPACE_NAME = 'COSTPOINT_RPTDATA'; 
+
+
+
+-- Code Generated by Sidekick is for learning and experimentation purposes only.
+SELECT
+    df.tablespace_name,
+    ROUND(SUM(df.bytes) / (1024 * 1024), 2) AS total_size_mb,
+    ROUND(SUM(fs.bytes) / (1024 * 1024), 2) AS free_size_mb,
+    ROUND((SUM(df.bytes) - SUM(fs.bytes)) / (1024 * 1024), 2) AS used_size_mb,
+    df.autoextensible AS auto_extend
+FROM
+    dba_data_files df
+LEFT JOIN
+    dba_free_space fs ON df.tablespace_name = fs.tablespace_name
+GROUP BY
+    df.tablespace_name, df.autoextensible
+ORDER BY
+    'SYSAUX';
+	
+alter database datafile 49 resize 90M;
+
+
+TABLESPACE_NAME                   MB_USED     MB_MAX
+------------------------------ ---------- ----------
+RCAT_ASP2                              60          0
+
+
+
+COLUMN file_name FORMAT A70
+SELECT file_id,
+       file_name,
+       ROUND(bytes/1024/1024) AS size_mb,
+       ROUND(maxbytes/1024/1024) AS max_size_mb,
+       autoextensible,
+       increment_by,
+       status
+FROM   dba_data_files
+WHERE  tablespace_name ='UNDO'
+ORDER BY file_id;
+
+ALTER DATABASE DATAFILE '/opt/data/TOOLSA/RCAT_CLSP_01.dbf' RESIZE 200M;
+
+I have already changed the dbora file script.I have worked with OS team. 
+
+
+/delphix/CPAAV/datafile/opt/data/CPAP/DELOITTE_188.dbf
+
+Alter tablespace COSTPOINT_XZDATA add datafile '/delphix/CPAQRV/datafile/opt/data/CPAP/COSTPOINT_XZDATA_197.dbf'  SIZE 2048M AUTOEXTEND ON MAXSIZE 30720M;
+
+/delphix/CPAPV_G/datafile/opt/data/CPAP/COSTPOINT_XZDATA_196.dbf
+Alter tablespace TEMP add tempfile '/opt/data/CT/temp03.dbf'  size 500M autoextend on;
+
+SQL> update props$ set value$=0 where name='DST_SECONDARY_TT_VERSION';
+
+1 row updated.
+
+SQL> update props$ set value$='NONE' where name='DST_UPGRADE_STATE';
+
+1 row updated.
+
+SQL> commit;
+
+Commit complete.
+
+SQL> select * from props$ where name like 'DST%';
+
+NAME 
+-----------------------------------------
+VALUE$ 
+-----------------------------------------
+COMMENT$ 
+-----------------------------------------
+DST_UPGRADE_STATE 
+NONE 
+State of Day Light Saving Time Upgrade 
+
+DST_PRIMARY_TT_VERSION 
+14 
+Version of primary timezone data file 
+
+DST_SECONDARY_TT_VERSION 
+0 
+Version of secondary timezone data file
+
+
+
+3 rows selected.
+---
+Solution:
+Execute the following scripts to fix timezone problem.
+
+
+
+SQL> /
+
+   FILE_ID FILE_NAME                                                       SIZE_MB MAX_SIZE_MB AUT INCREMENT_BY STATUS
+---------- ------------------------------------------------------------ ---------- ----------- --- ------------ ---------
+     25   /opt/idx/DEORGS1/CALENDAR_DAY_INDEX_20.dbf                        14005       30720 YES        12800 AVAILABLE
+     26   /opt/idx/DEORGS1/CALENDAR_DAY_INDEX_19.dbf                        14905       30720 YES        12800 AVAILABLE
+     27   /opt/idx/DEORGS1/CALENDAR_DAY_INDEX_18.dbf                        17705       30720 YES        12800 AVAILABLE
+     
+
+
+=====================================
+set pagesize 300 linesize 200
+SELECT tablespace_name,
+       size_mb,
+       free_mb,
+       max_size_mb,
+       max_free_mb,
+       TRUNC((max_free_mb / max_size_mb) * 100) AS free_pct,
+       ROUND((max_size_mb - max_free_mb) / max_size_mb * 100, 2) AS used_pct
+FROM   (
+         SELECT a.tablespace_name,
+                b.size_mb,
+                a.free_mb,
+                b.max_size_mb,
+                a.free_mb + (b.max_size_mb - b.size_mb) AS max_free_mb
+         FROM   (SELECT tablespace_name,
+                        TRUNC(SUM(bytes) / 1024 / 1024) AS free_mb
+                 FROM   dba_free_space
+                 GROUP BY tablespace_name) a,
+                (SELECT tablespace_name,
+                        TRUNC(SUM(bytes) / 1024 / 1024) AS size_mb,
+                        TRUNC(SUM(GREATEST(bytes, maxbytes)) / 1024 / 1024) AS max_size_mb
+                 FROM   dba_data_files
+                 GROUP BY tablespace_name) b
+         WHERE  a.tablespace_name = b.tablespace_name
+       )
+WHERE  tablespace_name = 'RCAT_COS2'
+ORDER BY tablespace_name;
+
+SELECT file_name, bytes/1024/1024 AS MB, autoextensible
+FROM dba_data_files
+WHERE tablespace_name = 'RCAT_COS1RCAT_COS1';
+
+
+
+SQL> startup
+ORA-01261: Parameter db_create_file_dest destination string cannot be translated
+ORA-01262: Stat failed on a file destination directory
+IBM AIX RISC System/6000 Error: 2: No such file or directory
+SQL>
+
+
+
+
+
+
+euawstaxbc00022 login issue
+SELECT name FROM v$datafile;
+
+Tablespace                        Used MB    Free MB   Total MB     % Free
+------------------------------ ---------- ---------- ---------- ----------
+COSTPOINT_RPTDATA                    1516    2368020    2369536        100
+COSTPOINT_RPTDATA                       4    2369532    2369536        100
+COSTPOINT_RPTDATA                    2884    2366652    2369536        100
+COSTPOINT_RPTDATA                    1099    2368437    2369536        100
+COSTPOINT_RPTDATA                    2418    2367118    2369536        100
+COSTPOINT_RPTDATA                  286553    2082983    2369536         88
+COSTPOINT_RPTDATA                     916    2368620    2369536        100
+COSTPOINT_RPTDATA                     496    2369040    2369536        100
+COSTPOINT_RPTDATA                 1575732     793804    2369536         34
+COSTPOINT_RPTDATA                  180751    2188785    2369536         92
+COSTPOINT_RPTDATA                  190402    2179134    2369536         92
+
+Tablespace                        Used MB    Free MB   Total MB     % Free
+------------------------------ ---------- ---------- ---------- ----------
+COSTPOINT_RPTDATA                   85520    2284016    2369536         96
+COSTPOINT_RPTDATA                     692    2368844    2369536        100
+COSTPOINT_RPTDATA                       0    2369536    2369536        100
+COSTPOINT_RPTDATA                 2280639      88897    2369536          4
+
+ORA-00059: maximum number of DB_FILES exceeded
+ALTER SYSTEM SET db_files = 300 SCOPE=SPFILE;
+
+KFORBES
+
+
+-- Code Generated by Sidekick is for learning and experimentation purposes only.
+SELECT
+    a.TABLESPACE_NAME,
+    a.FILE_NAME,
+    a.BYTES / 1024 / 1024 AS SIZE_MB,
+    NVL(b.FREE_MB, 0) AS FREE_MB,
+    (a.BYTES / 1024 / 1024) - NVL(b.FREE_MB, 0) AS USED_MB
+FROM
+    DBA_DATA_FILES a
+    LEFT JOIN (
+        SELECT
+            FILE_ID,
+            SUM(BYTES) / 1024 / 1024 AS FREE_MB
+        FROM
+            DBA_FREE_SPACE
+        GROUP BY
+            FILE_ID
+    ) b ON a.FILE_ID = b.FILE_ID
+WHERE
+    a.TABLESPACE_NAME = 'COSTPOINT_DATA';
+TA';
+------------------------------------------------------------------
+19c software installation steps..
+Download the Oracle Database 19C software from below link:
+or copy from any other server
+Copy the software to the server location : /oraexp/19C_software
+Create Oracle Home directory: /u01/app/oracle/product/19.3.0/db_1
+cd /u01/app/oracle/product/19.0/db_1
+unzip -oq /oraexp/19c_Software/AIX.PPC64_193000_db_home.zip
+Open X-session on No-machine NX client by opening terminal.
+cd /u01/app/oracle/product/19.0/db_1
+
+Execute ./runInstaller from terminal.
+shh -X oraias@servername
+We need to run these scripts..root.sh
+
+When facing some issue.
+
+a)Install database/client software only on certified operating system .
+b) Following can be used as reference to verify if oracle database/client is certified on an operating system.
+Locate Database Server or Client Certification Information on My Oracle Support (Doc ID 1295603.1)
+c) Verify /tmp is not set with 'noexec'
+d) Run software installation as below
+export CV_ASSUME_DISTID=OL7 -- If software is installed on RHEL 8/OL8
+cd <software directory>
+./runInstaller
+Note : Due to security limitations if noexec cannot be removed from /tmp ,temporary directory can be created in a different file system and export TEMP variables as below before running runInstaller
+eg:-
+1) mkdir -p /opt/app/oracle/tmp
+2) export TMPDIR=/opt/app/oracle/tmp
+export TMP=/opt/app/oracle/tmp
+export TEMP=/opt/app/oracle/tmp
+3) ./runInstaller
+
+
+
+./runinstaller ....was not working..try this. it works
+
+./runInstaller
+ERROR: Unable to verify the graphical display setup. This application requires X display. Make sure that 
+xdpyinfo exist under PATH variable.
+/u01/app/oracle/product/19.0/db_1/perl/bin/perl: error while loading shared libraries: libnsl.so.1: cannot open 
+shared object file: No such file or directory
+conn with os team
+install this pakage ...  sudo dnf install libnsl
+libnsl-2.28-251.el8_10.22.x86_64
+libnsl2-1.2.0-2.20180605git4a062cf.el8.x86_64
+setup display 
+ssh -X username@srvname
+cd /u01/app/oracle/product/19.0/db_1
+export CV_ASSUME_DISTID=OL8
+./runInstaller -ignorePrereq -J"-Doracle.install.database.validate.supportedOSCheck=false"
+
+
+export ORACLE_HOME=/u01/app/oracle/product/19.0/db_1
+export PATH=$ORACLE_HOME/OPatch:$PATH
+can you please change the permission of /uo1/app
+
+mkdir -p /u01/app/oracle/product/19.0/db_1
+
+unzip -oq /oraexp/19C_software/LINUX.X64_193000_db_home.zip
+ssh -X oraoem@usvdcenaqa00046
+i am not able to run.
+/u01/app/oraInventory/orainstRoot.sh
+/u01/app/oracle/product/19.0/db_1/root.sh
+database creation using dbca
+dbca -J-Doracle.assistants.dbca.validate.ConfigurationParams=false
+
+
+ sudo /u01/app/oraInventory/orainstRoot.sh
+sudo /u01/app/oracle/product/19.0/db_1/root.sh
+ -------------------------------------------------------------
+OEM agent installtion... agent deployment.
+how to add agent in OEM
+
+server name and search in oem
+ 
+click on agent  ---target setup ---agent deccom (any step)
+agent -----target setup ---agent deccom ---continue
+ 
+continue -----only in OEM server will be removed
+ 
+remove the folder from the server after oem done 13.4
+ 
+AGENT INSTALLATION
+  
+create the folder in the servr till  agent_inst
+settings ---add target -----manually ---add host targets host and platform ---------server name full USAZUAUDDE90001 us.deloiite.com ------platform
+ 
+ 
+FOR LINUX: /usr/bin/sudo -u %RUNAS% %COMMAND%
+FOR AIX : /opt/pware64/bin/sudo -u %RUNAS% %COMMAND%
+additional parameters :  -ignorePrereqs
+
+USAWSTAX05784.us.deloitte.com
+
+ADD_HOST_DBA_ADMIN_Jan_6_2025_6:16:26_AM_CST
+--------------------------------
+schema refresh steps...
+
+Schema refresh.
+1. Refresh COS1:GAE24  with a copy of IHR3:GAE90 
+2. Install IHR RLS
+3. Run a cleanup
+Note: Please use PARALLEL=1 on the IMPDP to ensure all DB objects are created successfully.
+st |grep COS2 |grep GAE17
+---------------
+Connect the server
+cd /u01/app/oracle/scripts/ges/ora_dba
+ls -lrt expdp_ges.ksh
+expdp_ges.ksh
+List of USAWSTAX05395 Databases to Export
+----------------------------------------
+IHR3
+COP2
+ASP1
+ASP2
+ASP3
+BT
+COS2
+COS1
+IHR1
+IHR2
+COP1
+----------------------------------------
+Please enter the SOURCE Database that you wish to Export \c
+ASP2
+----------------------------------------
+Enter each schema to export:
+Schema Name [Null to end]: \c
+GAE17
+Schema Name [Null to end]: \c
+----------------------------------------
+Note: This script will NOT import the schema. Run imp_ges.ksh to import
+Are you going to import the dump file into [n] none, [d] development, [q] qa, [p] production, or [s] staging database? \c
+n
+Enter the number of parallel worker processes [2] \c
+2
+=============================================================================
+Summary
+Source Database      : ASP2
+Source Schemas       : GAE17
+Destination Database :
+Parallel Workers     : 2
+Dump File            : expdp_ASP2_GAE17_202404222247_%U.dmp
+Directory Name       : DATA_PUMP_ASP2
+Directory Path       : /oraexp/ges/ASP2
+Log File             : /oraexp/ges/ASP2/expdp_ASP2_GAE17_202404222247.log
+=============================================================================
+Enter [c] to continue, [r] reenter selections, or [x] to exit \c
+c
+=============================================================================
+Exporting Database
+DATA_PUMP_ASP2=/oraexp/ges/ASP2 is valid in ASP2
+
+Export: Release 19.0.0.0.0 - Production on Mon Apr 22 22:50:12 2024
+Version 19.21.0.0.0
+
+Copyright (c)
+when this step done need to take duplicate session and check the space with df -h for (  151G  101G   43G  71% /oraexp)
+
+if its same serrer proceed with the below steps 
+
+[usawstax05395 oraias ASP2]> cd  /oraexp/ges/ASP2cd
+[usawstax05395 oraias ASP2]> ls -lrt
+
+-rw-r----- 1 oraias oinstall 17089986560 Apr 22 22:55 expdp_ASP2_GAE17_202404222247_02.dmp
+-rw-r----- 1 oraias oinstall 21428387840 Apr 22 22:55 expdp_ASP2_GAE17_202404222247_01.dmp
+-rw-r--r-- 1 oraias oinstall       65374 Apr 22 22:55 expdp_ASP2_GAE17_202404222247.log
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+copyig dumps from source to target
+if oraexp filled,
+free up the space copy by old dumps to any other location
+[usawstax05395 oraias ASP2]> pwd
+/oraexp/ges/ASP2
+[usawstax05395 oraias ASP2]> cp expdp_ASP2_GAE17_202404222247_02.dmp expdp_ASP2_GAE17_202404222247_01.dmp /oraexp/ges/IHR3
+-----------------------if the servr is not same use scp same 
+scp expdp_DEIHRP1_GAE25_202404250936_01.dmp expdp_DEIHRP1_GAE25_202404250936_02.dmp expdp_DEIHRP1_GAE25_202404250936_03.dmp oraias@euawstaxst00005:/oraexp/ges/DEIHRS1
+[usawstax05395 oraias ASP2]>
+
+[usawstax05395 oraias ASP2]>
+[usawstax05395 oraias ASP2]> pwd
+/oraexp/ges/ASP2
+
+[usawstax05395 oraias ASP2]> cd /efs-ges-backup-east1a 
+to clear files 
+[usawstax05395 oraias ASP2]> ls -lrt
+
+[usawstax05395 oraias ASP2]> mkdir -p GES_ASP2_DMP
+[usawstax05395 oraias ASP2]> cd GES_ASP2_DMP
+[usawstax05395 oraias ASP2]> ls -lrt
+total 0
+[usawstax05395 oraias ASP2]> pwd
+/efs-ges-backup-east1a/GES_ASP2_DMP
+[usawstax05395 oraias ASP2]> cd /oraexp/ges/ASP2
+[usawstax05395 oraias ASP2]> ls -lrt
+
+[usawstax05395 oraias ASP2]> mv expdp_ASP2_GAE17_202305291248_02.dmp expdp_ASP2_GAE17_202305291248_01.dmp expdp_ASP2_GAE17_202309010846_02.dmp expdp_ASP2_GAE17_202309010846_01.dmp /efs-ges-backup-east1a/GES_ASP2_DMP
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+[usawstax05395 oraias IHR3]> cd /u01/app/oracle/scripts/ges/ora_dba
+[usawstax05395 oraias IHR3]>
+[usawstax05395 oraias IHR3]>
+[usawstax05395 oraias IHR3]> ls -lrt impdp_ges.ksh
+-rwxrwxrwx 1 oraias oinstall 16838 Jul 18  2022 impdp_ges.ksh
+[usawstax05395 oraias IHR3]> impdp_ges.ksh
+Available Databases (ORACLE_SID)
+----------------------------------------
+IHR3
+COP2
+ASP1
+ASP2
+ASP3
+BT
+COS2
+COS1
+IHR1
+IHR2
+COP1
+----------------------------------------
+Enter ORACLE_SID [IHR3] \c
+IHR3
+----------------------------------------
+Enter each FROMUSER:
+FROM User Name [Null to end]: \c
+GAE17
+FROM User Name [Null to end]: \c
+
+----------------------------------------
+Enter each TOUSER:
+TO User Name [Null to end]: \c
+GAE51
+TO User Name [Null to end]: \c
+
+----------------------------------------
+Listing dump files in /oraexp
+Select any one file if there are multiple files in dump file set
+----------------------------------------
+-rw-r----- 1 oraias oinstall 21428387840 Apr 22 23:02 /oraexp/ges/IHR3/expdp_ASP2_GAE17_202404222247_01.dmp
+-rw-r----- 1 oraias oinstall 17089986560 Apr 22 22:59 /oraexp/ges/IHR3/expdp_ASP2_GAE17_202404222247_02.dmp
+----------------------------------------
+
+Enter the dump file [x to exit] \c
+/oraexp/ges/IHR3/expdp_ASP2_GAE17_202404222247_01.dmp
+There are 2 files in the export set
+----------------------------------------
+-rw-r----- 1 oraias oinstall 21428387840 Apr 22 23:02 /oraexp/ges/IHR3/expdp_ASP2_GAE17_202404222247_01.dmp
+-rw-r----- 1 oraias oinstall 17089986560 Apr 22 22:59 /oraexp/ges/IHR3/expdp_ASP2_GAE17_202404222247_02.dmp
+----------------------------------------
+Enter the number of parallel worker processes for import [2] \c
+1
+----------------------------------------
+Do you want to export Schemas before dropping objects [y|n] \c
+y
+=============================================================================
+Summary
+Database         : IHR3
+FromUser         : GAE17
+ToUser           : GAE51
+Remap_Schema     : GAE17:GAE51
+Parallel Workers : 1
+Dump File        : /oraexp/ges/IHR3/expdp_ASP2_GAE17_202404222247_%U.dmp
+Import Log File  : /oraexp/ges/IHR3/expdp_ASP2_GAE17_202404222247.log
+Directory Name   : DATA_PUMP_IHR3
+Directory Path   : /oraexp/ges/IHR3
+Export First     : Y
+WARNING          : This will overwrite any existing data owned by the TOUSER schemas!
+=============================================================================
+Enter [c] to continue, [r] reenter selections, or [x] to exit [ c|r|x ] \c
+c
+DATA_PUMP_IHR3=/oraexp/ges/IHR3 is valid in IHR3
+=============================================================================
+Exporting IHR3:GAE51
+
+Export: Release 19.0.0.0.0 - Production on Mon Apr 22 23:16:43 2024
+Version 19.21.0.0.0
+
+Copyright (c) 1982, 2019, Oracle and/or its affiliates.  All rights reserved.
+
+Connected to: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production
+Starting "GADBA"."SYS_EXPORT_SCHEMA_01":  GADBA/********@IHR3 parallel=1 directory=DATA_PUMP_PRE_DROP dumpfile=pre_drop_IHR3_GAE51_202404221105_%U.dmp logfile=pre_drop_IHR3_GAE51_202404221105_%U.dmp filesize=20g schemas=GAE51 exclude=STATISTICS
+
+Dump file set for GADBA.SYS_EXPORT_SCHEMA_01 is:
+  /oraexp/ges/pre_drop/pre_drop_IHR3_GAE51_202404221105_01.dmp
+  /oraexp/ges/pre_drop/pre_drop_IHR3_GAE51_202404221105_02.dmp
+Job "GADBA"."SYS_EXPORT_SCHEMA_01" successfully completed at Mon Apr 22 23:25:07 2024 elapsed 0 00:08:21
+
+$$$$$Export done
+=============================================================================
+Selecting IHR3:GAE51 Default Preferences
+Selecting IHR3:GAE51 Shared Schema
+=============================================================================
+OK to Drop IHR3:GAE51 Objects? [y|n] \c
+y
+Dropping Schema GAE51
+=============================================================================
+Importing data, see log file expdp_ASP2_GAE17_202404222247.log
+
+Import: Release 19.0.0.0.0 - Production on Mon Apr 22 23:26:24 2024
+Version 19.21.0.0.0
+
+Copyright (c) 1982, 2019, Oracle and/or its affiliates.  All rights reserved.
+
+Connected to: Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production
+Master table "GADBA"."SYS_IMPORT_FULL_01" successfully loaded/unloaded
+Starting "GADBA"."SYS_IMPORT_FULL_01":  GADBA/********@IHR3 parallel=1 directory=DATA_PUMP_IHR3 dumpfile=expdp_ASP2_GAE17_202404222247_%U.dmp logfile=impdp_IHR3_GAE51_202404221105.log remap_schema=GAE17:GAE51
+Processing object type SCHEMA_EXPORT/USER
+ORA-31684: Object type USER:"GAE51" already exists
+
+
+
+ORA-39082: Object type PACKAGE BODY:"GAE51"."ENTITY_ARCHIVE_AND_RESTORE" created with compilation warnings
+
+Job "GADBA"."SYS_IMPORT_FULL_01" completed with 87 error(s) at Mon Apr 22 23:59:59 2024 elapsed 0 00:33:33
+
+-->Imp IHR3:GAE51 may not have completed
+-->See /oraexp/ges/IHR3/impdp_IHR3_GAE51_202404221105.log
+
+==================================================================================================
+
+ERROR:
+statement in resumable session 'GADBA.SYS_IMPORT_FULL_01.1' was suspended due to
+    ORA-01653: unable to extend table GAE51.GAIHR_COMMENTS by 8192 in tablespace GA_ADMIN_DATA
+2024-04-22T23:42:23.794738-05:00
+ALTER TABLESPACE GA_ADMIN_DATA ADD DATAFILE '/opt/data/IHR3/gaadmdat02.dbf' SIZE 2048M AUTOEXTEND ON MAXSIZE 30720M
+2024-04-22T23:42:31.209882-05:00
+Completed: ALTER TABLESPACE GA_ADMIN_DATA ADD DATAFILE '/opt/data/IHR3/gaadmdat02.dbf' SIZE 2048M AUTOEXTEND ON MAXSIZE 30720M
+2024-04-22T23:42:31.511764-05:00
+statement in resumable session 'GADBA.SYS_IMPORT_FULL_01.1' was resumed
+2024-04-22T23:42:35.319666-05:00
+
+steps:add datafile to table space
++++++++++++++++++++++++++++++++++++++++++++++++++
+
+nest step installing RLS
+
+taking passowrd: for targent 
+[usawstax05395 oraias IHR3]> st |grep GAE24 | grep COS1
+IHR3:GAE51:SdghpkK9bH_632:GAE51:
+[usawstax05395 oraias IHR3]>
+[usawstax05395 oraias IHR3]> cd /u01/app/oracle/scripts/ges/ora_rls/GA/IHR_RLS_60
+do for target schema
+ga_rls_install.sh GAE51 SdghpkK9bH_632 IHR3 USER51 R_BXc8LqSyZojG 
++++++++++++++++++++++++++++
+next step cleanup
+
+ Run GA CleanUp on IHR1 USER1(target)
+
+cd /u01/app/oracle/scripts/ges/ora_dba
+
+ga_cleanup_ss.sh GAE51 SdghpkK9bH_632 IHR3
+
+
++++++++++++++++++++++
+
+adding 
+
+step4: connect to TOOLSA(database)
+
+connn gadba/gadba12;
+
+connect sys user
+
+alter session set current_schema=GADBA;
+
+INSERT INTO TAX_REFRESH SELECT SCHEMA_ID, SID_ID, PWD, '20071_bld13', 'US2008_01', (SELECT MAX (RELEASE_DATE) FROM TAX_REFRESH) FROM GES_MASTER_SCHEMA_TAB WHERE SID_ID = 'IHR1' AND SCHEMA_ID = 'GAE1' ;
+
+COMMIT;
+
+[usawstax05395 oraias COP2]> st |grep GAE24 | grep COS1
+COS1:GAE24:f_wgqNJwFyv4MD:GAE24:
+---------------------------
+ga_drop_objs.sh GAE17 Crwa94YXmVAq_V ASP1
+
+
+
+ga_cleanup_ss.sh GAE16 JG5FiBu6kGY_4y COP2
+------------------------------------------------------
+Please decommission below instances in Production ASP3 GAE4 - Segment ASP1 GAE16 - Nikon Metrology
+
+st |grep COS2 |grep GAE17
+
+To drop objects..
+cd /u01/app/oracle/scripts/ges/ora_dba
+
+
+ga_drop_objs.sh GAE16 Crwa94YXmVAq_V ASP1
+
+------------------
+
+Cancel Active Time Zone Upgrade:
+If you determine that an active time zone upgrade is causing the issue, you can cancel it using the  
+ DBMS_DST package.
+SQL
+
+BEGIN
+   DBMS_DST.END_PREPARE;
+END;
+/...............................................
+pt related ..blocking sessions
+How to check SID and SERIAL# and kill a session in oracle.
+Using OEM
+First entre db name and search 
+ navigate to 'performance' 'Performance hub''SQL MONITORING'
+ select SQL ID
+ and check time
+ 
+ select * from V$SESSION where SQL_ID = 'a1nks42zd3wrn';
+  desc v$session;
+ 
+select SERIAL#,SID from V$SESSION where SQL_ID = '83f203wm01gyh';
+
+   SERIAL#        SID
+---------- ----------
+     25166       2288
+                            SID serial  
+ALTER SYSTEM KILL SESSION '2628,44742';
+select SERIAL#,SID from V$SESSION where SQL_ID = '8sq9ztah3m3f1';
+
+SERIAL#    SID
+------- ------
+  21076      4
+
+
+SERIAL#    SID
+------- ------
+  32573   3085
+
+
+
+
+
+SQL>  select SERIAL#,SID from V$SESSION where SQL_ID = '542dxk6kmtkns';
+
+SERIAL#    SID
+------- ------
+  29277   3080
+
+https://deloitteglobal.service-now.com/incident.do?sys_id=fd4878b08716da5052a133790cbb35a1
+
+
+
+
+
+SELECT log_date, job_name, status, error#, additional_info
+FROM dba_scheduler_job_log WHERE job_name = 'SVCWDAP.WDAP_LOADER.LOAD_DAILY'
+ORDER BY log_date DESC;
+
+------------------------------
+SELECT
+    blocking_session,
+    sid,
+    serial#,
+    wait_class,
+    seconds_in_wait
+FROM
+    v$session
+WHERE
+    blocking_session IS NOT NULL
+ORDER BY
+    blocking_session;
+	
+	select
+   c.owner,
+   c.object_name,
+   c.object_type,
+   b.sid,
+   b.serial#,
+   b.status,
+   b.osuser,
+   b.machine
+from
+   v$locked_object a,
+   v$session b,
+   dba_objects c
+where
+   b.sid = a.session_id and
+   a.object_id = c.object_id;
+   
+   SELECT
+    blocking_session.sid AS blocking_sid,
+    blocking_session.serial# AS blocking_serial,
+    blocking_session.username AS blocking_username,
+    blocking_session.osuser AS blocking_osuser,
+    blocking_session.machine AS blocking_machine,
+    blocking_session.program AS blocking_program,
+    blocked_session.sid AS blocked_sid,
+    blocked_session.serial# AS blocked_serial,
+    blocked_session.username AS blocked_username,
+    blocked_session.osuser AS blocked_osuser,
+    blocked_session.machine AS blocked_machine,
+    blocked_session.program AS blocked_program,
+    blocked_session.event AS blocked_event,
+    blocked_session.wait_time AS blocked_wait_time,
+    blocked_session.seconds_in_wait AS blocked_seconds_in_wait
+FROM
+    v$session blocked_session
+JOIN
+    v$session blocking_session
+ON
+    blocked_session.blocking_session = blocking_session.sid
+WHERE
+    blocked_session.blocking_session = 1408
+ORDER BY
+    blocked_session.seconds_in_wait DESC;
+	
+	----------------------
+	
+	SELECT
+    sid,
+    serial#,
+    username,
+    osuser,
+    machine,
+    program,
+    status,
+    event,
+    wait_time,
+    seconds_in_wait
+FROM
+    v$session
+WHERE
+    sid = 1408;
+	---------------
+	SID: 1408
+Serial#: 62420
+Username: TC_0005
+OS User: usgpsqacpsvc
+Machine: USAWSITSQA01504
+Program: JDBC Thin Client
+Status: INACTIVE
+Event: SQL*Net message from client
+Wait Time: 0
+Seconds in Wait: 60
+----------------------
+
+SET LINESIZE 200
+SET PAGESIZE 50
+
+COLUMN sample_time FORMAT A20
+COLUMN sid FORMAT 9999
+COLUMN serial FORMAT 99999
+COLUMN user_id FORMAT 99999
+COLUMN sql_id FORMAT A13
+COLUMN event FORMAT A30
+COLUMN blocking_sid FORMAT 9999
+COLUMN blocking_serial FORMAT 99999
+COLUMN wait_time FORMAT 99999
+COLUMN time_waited FORMAT 99999
+
+SELECT
+    ash.sample_time,
+    ash.session_id AS sid,
+    ash.session_serial# AS serial,
+    ash.user_id,
+    ash.sql_id,
+    ash.event,
+    ash.blocking_session AS blocking_sid,
+    ash.blocking_session_serial# AS blocking_serial,
+    ash.wait_time,
+    ash.time_waited
+FROM
+    dba_hist_active_sess_history ash
+WHERE
+    ash.session_id = 1408
+    AND ash.sample_time >= SYSDATE - 7
+ORDER BY
+    ash.sample_time DESC;
+	
+	
+	
+	------ Set the linesize to accommodate the width of your data
+SET LINESIZE 200
+SET PAGESIZE 50
+SET LONG 1000000
+COLUMN sample_time FORMAT A30
+COLUMN sid FORMAT 9999
+COLUMN serial FORMAT 99999
+COLUMN user_id FORMAT 9999
+COLUMN sql_id FORMAT A13
+COLUMN event FORMAT A30
+COLUMN blocking_sid FORMAT 9999
+COLUMN blocking_serial FORMAT 99999
+COLUMN wait_time FORMAT 999999
+COLUMN time_waited FORMAT 999999
+---------------------------------------------
+select SERIAL#,SID from V$SESSION where SQL_ID = '8b5uhd8px6q0a';
+
+   SERIAL#        SID
+---------- ----------
+     17140         63
+     47522       1133
+     51826       1757
+      4662       1911
+---------------------------------
+select SERIAL#,SID from V$SESSION where SQL_ID = '542dxk6kmtkns';
+
+   SERIAL#        SID
+---------- ----------
+     17140         63
+     47522       1133
+     51826       1757
+      4662       1911
+
+
+
+SQL> ALTER SYSTEM KILL SESSION '1133,47522';
+
+System altered.
+SQL>
+USHDC 8463
+----------------------
+
+
+a1nks42zd3wrn
+  SERIAL#        SID
+---------- ----------
+     35763        214
+      1372        517
+ALTER SYSTEM KILL SESSION '214,35763';
+ALTER SYSTEM KILL SESSION '517,1372';
+
+SERIAL#        SID
+---------- ----------
+     30828         11
+     52999         14
+ALTER SYSTEM KILL SESSION '14,52999';
+
+
+how to check blocking session....
+
+SELECT
+    blocking_session,
+    sid,
+    serial#,
+    wait_class,
+    seconds_in_wait
+FROM
+    v$session
+WHERE
+    blocking_session IS NOT NULL
+ORDER BY
+    blocking_session;
+	
+	select
+   c.owner,
+   c.object_name,
+   c.object_type,
+   b.sid,
+   b.serial#,
+   b.status,
+   b.osuser,
+   b.machine
+from
+   v$locked_object a,
+   v$session b,
+   dba_objects c
+where
+   b.sid = a.session_id and
+   a.object_id = c.object_id;
+   
+   SELECT
+    blocking_session.sid AS blocking_sid,
+    blocking_session.serial# AS blocking_serial,
+    blocking_session.username AS blocking_username,
+    blocking_session.osuser AS blocking_osuser,
+    blocking_session.machine AS blocking_machine,
+    blocking_session.program AS blocking_program,
+    blocked_session.sid AS blocked_sid,
+    blocked_session.serial# AS blocked_serial,
+    blocked_session.username AS blocked_username,
+    blocked_session.osuser AS blocked_osuser,
+    blocked_session.machine AS blocked_machine,
+    blocked_session.program AS blocked_program,
+    blocked_session.event AS blocked_event,
+    blocked_session.wait_time AS blocked_wait_time,
+    blocked_session.seconds_in_wait AS blocked_seconds_in_wait
+FROM
+    v$session blocked_session
+JOIN
+    v$session blocking_session
+ON
+    blocked_session.blocking_session = blocking_session.sid
+WHERE
+    blocked_session.blocking_session = 1408
+ORDER BY
+    blocked_session.seconds_in_wait DESC;
+	
+	----------------------
+	
+	SELECT
+    sid,
+    serial#,
+    username,
+    osuser,
+    machine,
+    program,
+    status,
+    event,
+    wait_time,
+    seconds_in_wait
+FROM
+    v$session
+WHERE
+    sid = 1408;
+	---------------
+	SID: 1408
+Serial#: 62420
+Username: TC_0005
+OS User: usgpsqacpsvc
+Machine: USAWSITSQA01504
+Program: JDBC Thin Client
+Status: INACTIVE
+Event: SQL*Net message from client
+Wait Time: 0
+Seconds in Wait: 60
+----------------------
+
+SET LINESIZE 200
+SET PAGESIZE 50
+
+COLUMN sample_time FORMAT A20
+COLUMN sid FORMAT 9999
+COLUMN serial FORMAT 99999
+COLUMN user_id FORMAT 99999
+COLUMN sql_id FORMAT A13
+COLUMN event FORMAT A30
+COLUMN blocking_sid FORMAT 9999
+COLUMN blocking_serial FORMAT 99999
+COLUMN wait_time FORMAT 99999
+COLUMN time_waited FORMAT 99999
+
+SELECT
+    ash.sample_time,
+    ash.session_id AS sid,
+    ash.session_serial# AS serial,
+    ash.user_id,
+    ash.sql_id,
+    ash.event,
+    ash.blocking_session AS blocking_sid,
+    ash.blocking_session_serial# AS blocking_serial,
+    ash.wait_time,
+    ash.time_waited
+FROM
+    dba_hist_active_sess_history ash
+WHERE
+    ash.session_id = 1408
+    AND ash.sample_time >= SYSDATE - 7
+ORDER BY
+    ash.sample_time DESC;
+	
+	
+	
+	------ Set the linesize to accommodate the width of your data
+SET LINESIZE 200
+SET PAGESIZE 50
+SET LONG 1000000
+COLUMN sample_time FORMAT A30
+COLUMN sid FORMAT 9999
+COLUMN serial FORMAT 99999
+COLUMN user_id FORMAT 9999
+COLUMN sql_id FORMAT A13
+COLUMN event FORMAT A30
+COLUMN blocking_sid FORMAT 9999
+COLUMN blocking_serial FORMAT 99999
+COLUMN wait_time FORMAT 999999
+COLUMN time_waited FORMAT 999999
+======================================
+SQL> /
+
+
+SQL> exit
+Disconnected from Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production
+Version 19.26.0.0.0
+[usawsenaqa00110 oradtk CPAQ]> date
+Tue Apr  8 02:31:16 CDT 2025
+[usawsenaqa00110 oradtk CPAQ]>
+------------------------------
+
+SET LINESIZE 200
+COLUMN SID         FORMAT 99999
+COLUMN SERIAL#     FORMAT 99999
+COLUMN USERNAME    FORMAT A15
+COLUMN STATUS      FORMAT A10
+COLUMN OSUSER      FORMAT A15
+COLUMN LOCK_TYPE   FORMAT A10
+COLUMN ID1         FORMAT 9999999999
+COLUMN ID2         FORMAT 9999999999
+COLUMN LMODE       FORMAT 99
+COLUMN REQUEST     FORMAT 99
+COLUMN BLOCK       FORMAT 9
+SELECT
+    s.sid,
+    s.serial#,
+    s.username,
+    s.status,
+    s.osuser,
+    l.type AS lock_type,
+    l.id1,
+    l.id2,
+    l.lmode,
+    l.request,
+    l.block
+FROM
+    v$session s
+JOIN
+    v$lock l ON s.sid = l.sid
+WHERE
+    s.username = 'CALENDARXML'
+    AND l.block = 0
+    AND l.request > 0;
+	================================
+	Create SQL Tuning Task:
+SQL
+
+DECLARE
+  l_sql_tune_task_id VARCHAR2(100);
+BEGIN
+  l_sql_tune_task_id := DBMS_SQLTUNE.CREATE_TUNING_TASK(
+    sql_id => 'f6qykuphvc92a',
+    scope  => DBMS_SQLTUNE.SCOPE_COMPREHENSIVE,
+    time_limit => 60,
+    task_name => 'sql_tuning_task_f6qykuphvc92a',
+    description => 'Tuning task for SQL ID f6qykuphvc92a'
+  );
+END;
+/
+
+
+  Execute SQL Tuning Task:
+SQL
+
+BEGIN
+  DBMS_SQLTUNE.EXECUTE_TUNING_TASK(task_name => 'sql_tuning_task_f6qykuphvc92a');
+END;
+/
+
+Accept SQL Profile:
+SQL
+
+DECLARE
+  l_sql_profile_name VARCHAR2(100);
+BEGIN
+  l_sql_profile_name := DBMS_SQLTUNE.ACCEPT_SQL_PROFILE(
+    task_name => 'sql_tuning_task_f6qykuphvc92a',
+    name => 'sql_profile_f6qykuphvc92a'
+  );
+END;
+/
+
+Verify SQL Profile
+SQL
+
+SELECT name, type, status
+FROM dba_sql_profiles
+WHERE name = 'sql_profile_f6qykuphvc92a';
+------------------------------------------
+INC8218706 to increase mountpoint /opt/data to 300gb USAWSTAXBC00043
+
+
+
+
+select value from fw_config where key='ScheduleMeetingUrl' and app='MobileCalendar';
+
+VALUE
+--------------------------------------------------------------------------------
+https://meetingscheduler.deloitte.com/SamlTarget?mCategory=
+
+SQL>
+SQL> Update fw_config set value='https://msweb-us.employeeservice.ges.deloitte.com/Home/SamlTarget?mCategory=' where key='ScheduleMeetingUrl' and app='MobileCalendar';
+
+Commit;
+
+1 row updated.
+
+SQL> SQL>
+Commit complete.
+
+
+
+micheal...
+do we need to the space...
+
+Host=ushdc8656.us.deloitte.com 
+Target type=Host 
+Target name=ushdc8656.us.deloitte.com 
+Categories=Capacity 
+Message=Filesystem /nasbackup has 4.95% available space, fallen below warning (20) or critical (5) threshold. 
+Severity=Critical 
+
+BEGIN
+  DBMS_STATS.GATHER_SCHEMA_STATS(
+    ownname => 'ASPNET2',
+    estimate_percent => DBMS_STATS.AUTO_SAMPLE_SIZE,
+    method_opt => 'FOR ALL COLUMNS SIZE AUTO',
+    cascade => 
+  );
+END;
+/
+
+Command to check last analyzed ....stats gather when..
+SQL> SELECT table_name, last_analyzed
+FROM dba_tab_statistics
+WHERE owner = 'ASPNET2'
+============================================================================================================================================================
+
+dbora automatic startup after rebood...
+ataguard commands...
+select name,open_mode,database_role from v$database;
+
+>to check log gaps between primary and standby databases...
+For primary...
+archive log list;
+
+For standby..........
+select max(sequence#) from v$archived_log where applied= 'YES';
+-----------------------------------------------------------------
+How to restart standby database..
+shutimmediate;
+startup nomount;
+alter database mount standby database;
+alter database recover managed standby database disconnect from session;
+=========
+SELECT profile FROM dba_users WHERE username = 'USER28';
+=============================
+Switch over activity
+
+
+check status and configuration
+ 
+----st to check sys passowrd 
+
+dgmgrl /
+
+show configuration;
+----take the scree shots before and after failover 
+dgmgrl /
+
+Connect SYS/M4tgQ1yh@IHR1_E1AP
+Show configuration;
+
+Switchover to 'IHR1_W1AS';  
+ 
+---screen shot failover havppen
+ 
+check SIDPrimary is in mount mode and in sync or not-------- select open_mode from v$database;
+alter system switch logfile;
+ 
+Check case sensitive parameter in DB is TRUE
+in sdba :  show parameter sensitive
+ 
+show parameter service; ---for conection the database to tell the users 
+
+
+
+=======
+queries to start active dataguard standby db..
+startup mount;
+alter database open read only;
+alter database recover managed standby database using current logfile disconnect from session;
+===================================================================================================================================================================
+OEM patching steps
+
+OEM patching steps.
+
+check the df -h
+ 
+cd /oraexp/EMStage/Oct2025
+uname -a
+oem patchin only ------------------------------------only OEM SERVERS
+
+[ushdc8510 oraoem OER]> . set_OMS
+ 
+[ushdc8510 oraoem OER]> emctl status oms
+ 
+emctl stop oms 
+. set_AH
+ 
+[ushdc8510 oraoem OER]> emctl status agent
+emctl stop agent
+
+dgmgrl /
+show configuration;
+cp -r OPatch $OH
+opatch version
+dbshutALL.ksh
+cd 
+cd bin 
+ls -lrt
+dbshutALL.ksh
+apply two patched 
+opatch lsinventory |grep applied
+after patching 
+startdbALLUpgrade.ksh 
+in primary and cd /oraexp/EMStage 
+ apply Patch_Script_Execute.ksh (db patch in primary onlyh )
+for oem servers
+ 
+. set_OMS
+ frstt  start listener...
+[ushdc8510 oraoem OER]> emctl status oms  
+emctl start oms
+. set_AH
+ 
+[ushdc8510 oraoem OER]> emctl status agent
+emctl start agent
+
+---in prmart only
+set pages 300 lines 300         
+ 
+col action form a12
+ 
+col version form a40
+ 
+col description form a70
+ 
+col action_date form a20
+ 
+col ACTION_TIME for a38 
+select PATCH_ID,ACTION,STATUS,ACTION_TIME,DESCRIPTION from dba_registry_sqlpatch order by ACTION_TIME;
+select name,open_mode from v$database;
+ 
+
+dgmgrl /
+ 
+show configuration; to check the sync
+======================================
+For standby database
+start listener
+
+lsnrctl status 
+lsnrctl start
+. set_AH
+emctl start agent 
+emctl status agent
+
+startup nomount;
+
+alter database mount standby database;
+ 
+ 
+ 
+ 
+ 
+ ls $ORACLE_HOME/OPatch
+ Reset 'xyz' user account password on following db's: ASP1, ASP2, ASP
+ 
+ Reset 'fxratesload' user account password on following db's: ASP1, ASP2, ASP3, COS1, COS2, COP1, IHR1, IHR2, IHR3
+ --------------------
+ Patch 37260974 successfully applied.
+Sub-set patch [36912597] has become inactive due to the application of a super-set patch [37260974].
+Please refer to Doc ID 2161861.1 for any possible further required actions.
+OPatch Session completed with warnings.
+Log file location: /u01/app/oracle/product/19.0/db_1/cfgtoollogs/opatch/opatch2025-02-18_23-02-09PM_1.log
+
+OPatch completed with warnings.
+
+
+-----------------
+standbyPatch 37260974 successfully applied.
+Sub-set patch [36912597] has become inactive due to the application of a super-set patch [37260974].
+Please refer to Doc ID 2161861.1 for any possible further required actions.
+OPatch Session completed with warnings.
+Log file location: /u01/app/oracle/product/19.0/db_1/cfgtoollogs/opatch/opatch2025-02-19_00-03-32AM_1.log
+
+OPatch completed with warnings.
+Patch 37102264 successfully applied.
+Sub-set patch [36878697] has become inactive due to the application of a super-set patch [37102264].
+Please refer to Doc ID 2161861.1 for any possible further required actions.
+OPatch Session completed with warnings.
+Log file location: /u01/app/oracle/product/19.0/db_1/cfgtoollogs/opatch/opatch2025-02-19_00-23-03AM_1.log
+
+OPatch completed with warnings.
+=========================================================================================================================================================
+user related...commands
+SELECT username,
+       os_username,
+       userhost AS ip_or_hostname,
+       returncode,
+       timestamp
+FROM dba_audit_session
+WHERE username = 'GAE15'
+  AND returncode = 1017
+  AND timestamp BETWEEN TO_DATE('2025-05-25', 'YYYY-MM-DD') AND TO_DATE('2025-06-25 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+ORDER BY timestamp DESC
+.......
+SELECT username, timestamp, returncode
+FROM dba_audit_trail
+WHERE username = 'CALENDARXML'
+AND action_name = 'LOGON'
+AND returncode != 0
+ORDER BY timestamp DESC;
+
+SELECT profile
+FROM dba_users
+WHERE username = 'CALENDARXML';
+
+
+select dbusername , event_timestamp, action_name,system_privilege_used from 
+unified_audit_trail where dbusername='CALENDARXML' and action_name in ('ALTER USER','LOGON'); ('
+
+SELECT *
+FROM unified_audit_trail
+WHERE rownum <= 10;
+
+SELECT dbusername, event_timestamp, action_name, return_code
+FROM unified_audit_trail
+WHERE dbusername = 'CALENDARXML'
+AND action_name = 'LOGON'
+AND return_code != 0
+ORDER BY event_timestamp DESC;
+
+The output shows multiple failed LOGON attempts by the user CALENDARXML with a RETURN_CODE of 1017..
+
+the output shows multiple failed LOGON attempts by the user CALENDARXML with a RETURN_CODE of 1017
+
+
+SELECT 
+  TABLE_OWNER,
+  TABLE_NAME,
+  INSERTS,
+  UPDATES,
+  DELETES,
+  TIMESTAMP AS LAST_CHANGE
+FROM 
+  DBA_TAB_MODIFICATIONS
+WHERE
+  TO_CHAR(TIMESTAMP,'DD.MM.YYYY') = TO_CHAR(SYSDATE,'DD.MM.YYYY')
+  AND TABLE_OWNER = 'GAE17'
+  AND TABLE_NAME = 'TEMP_COMPVALUES';
+  
+  
+  
+CROSSCHECK CONTROLFILECOPY '/oraexp/standby_BACKUP/1std_control.ctl';
+
+CROSSCHECK CONTROLFILECOPY '/oraexp/standby_BACKUP/1std_control.ctl';
+
+using target database control file instead of recovery catalog
+
+allocated channel: ORA_DISK_1
+
+channel ORA_DISK_1: SID=1223 device type=DISK
+
+validation failed for control file copy
+
+control file copy file name=/oraexp/standby_BACKUP/1std_control.ctl RECID=2 STAMP=1211291585
+
+Certainly! Let me walk you through what’s happening with your CROSSCHECK CONTROLFILECOPY command and why you’re seeing that "validation failed for control file copy" message.
+
+Background: What the Command Does
+CROSSCHECK CONTROLFILECOPY '/oraexp/standby_BACKUP/1std_control.ctl';
+This command checks if the backup control file copy physically exists at the specified location. It validates the backup’s presence and accessibility as recorded in RMAN’s metadata.
+
+Interpreting the Output
+"using target database control file instead of recovery catalog"
+This means RMAN is relying on the local control file metadata rather than an external recovery catalog.
+
+Channel Allocation and SID
+RMAN has allocated an internal channel (session/session-id 1223) to perform the check.
+
+"validation failed for control file copy"
+This is the core issue: RMAN checked for /oraexp/standby_BACKUP/1std_control.ctl but was unable to confirm its integrity or presence.
+
+Common Reasons for Validation Failure
+File Missing
+The physical file /oraexp/standby_BACKUP/1std_control.ctl does not exist on disk.
+File Corrupted or Inaccessible
+The file exists, but it’s corrupted, or there are OS-level permission issues or filesystem problems.
+Path Mismatch or Typo
+The location or filename doesn’t match the actual file.
+Backup Metadata Stale
+The RMAN metadata thinks it should be there (e.g., in the control file), but the file was deleted/moved externally.
+Filesystem Mount/Access Issues
+The disk or directory isn't mounted, or there are permission issues at the OS level.
+Resolution Steps
+1. Check the File's Existence:
+Log in to the OS and run:
+
+
+Bash
+
+ls -l /oraexp/standby_BACKUP/1std_control.ctl
+If the file is missing, that’s the root cause.
+
+2. File Permissions:
+If it exists, ensure that the Oracle user has read permissions:
+
+
+Bash
+
+ls -l /oraexp/standby_BACKUP/1std_control.ctl
+3. File Integrity:
+Even if present, the file could be corrupted. Check its size and consider using RMAN to restore/control operations if needed.
+
+4. RMAN Metadata:
+If the file is missing and not needed anymore, you can update RMAN metadata by removing invalid entries:
+
+
+SQL
+
+DELETE EXPIRED CONTROLFILECOPY '/oraexp/standby_BACKUP/1std_control.ctl';
+This will mark the file as EXPIRED and clean up RMAN’s records.
+
+5. Restore as Needed:
+If you need this control file copy for recovery, you’ll need to restore or recreate it from a valid RMAN backup.
+
+Summary Table
+Symptom	Likely Cause	Fix/Next Step
+File missing or path incorrect	Check for typos or actual existence	
+Permission denied	Fix ownership/permissions	
+File corrupted or partial	Restore valid backup	
+Mount/unmount or FS issues	Check/dba OS mount points	
+Would you like help with specific RMAN commands to delete expired entries or to restore/recreate a control file backup?
+
+how to check expired backup
+
+Absolutely, let’s clarify how to check for expired backups in RMAN and understand what "expired" means in this context.
+
+What Does "Expired" Mean in RMAN?
+An "expired" backup is one that is recorded in the RMAN repository (control file or recovery catalog), but no longer physically exists at the recorded location (e.g., the file was deleted or moved outside of RMAN).
+Running the CROSSCHECK command allows RMAN to verify whether recorded backups are actually accessible.
+Steps to Check for Expired Backups
+1. Run a CROSSCHECK Command
+This will update the status of your backups:
+
+
+SQL
+
+RMAN> CROSSCHECK BACKUP;
+This checks all backups in the RMAN repository.
+If you are checking a specific type (e.g., controlfile, datafile, archivelog), modify as required:
+
+
+SQL
+
+RMAN> CROSSCHECK CONTROLFILECOPY;
+RMAN> CROSSCHECK ARCHIVELOG ALL;
+2. List Expired Backups
+To display all expired backups:
+
+
+SQL
+
+RMAN> LIST EXPIRED BACKUP;
+For expired datafile copies:
+
+SQL
+
+RMAN> LIST EXPIRED COPY;
+For expired control file copies:
+
+SQL
+
+RMAN> LIST EXPIRED CONTROLFILECOPY;
+The output will show details about each expired backup.
+
+What to Do Next
+If the expired backup is not needed anymore, you can delete its record:
+
+
+SQL
+
+RMAN> DELETE EXPIRED BACKUP;
+or specifically for control files:
+
+
+SQL
+
+RMAN> DELETE EXPIRED CONTROLFILECOPY;
+If you need a backup that has gone expired (and physically missing), you will need to create a new backup.
+
+Summary Table
+Command	Purpose
+CROSSCHECK BACKUP	Refresh status of all backups
+LIST EXPIRED BACKUP	Show all backups that are expired
+DELETE EXPIRED BACKUP	Remove expired entries from RMAN repo
+CROSSCHECK CONTROLFILECOPY	Verify control file copies' status
+LIST EXPIRED CONTROLFILECOPY	List expired control file copies
+If you need help interpreting the output or taking action after finding expired backups, just let me know!
+
+RMAN> LIST EXPIRED BACKUP;
+
+LIST EXPIRED BACKUP;
+
+using target database control file instead of recovery catalog
+
+specification does not match any backup in the repository
+
+You're seeing:
+
+specification does not match any backup in the repository
+
+This message means that, after running LIST EXPIRED BACKUP;, RMAN did not find any expired backups recorded in the control file or recovery catalog.
+
+What This Means
+No expired backups are currently registered.
+Expired backups are backup pieces recorded in RMAN's metadata but physically missing from disk or tape (after running a CROSSCHECK).
+The repository is up to date, and all registered backups are accessible (not expired), or all expired backups have already been removed from the RMAN catalog.
+Next Steps and Tips
+If you expect backups to be expired (for example, because you deleted backup files manually), run a CROSSCHECK first.
+This prompts RMAN to check each backup’s actual status:
+
+
+SQL
+
+RMAN> CROSSCHECK BACKUP;
+Check other backup types if relevant:
+
+Control file copies: LIST EXPIRED CONTROLFILECOPY;
+Datafile copies: LIST EXPIRED COPY;
+Archivelogs: LIST EXPIRED ARCHIVELOG;
+View all backups (regardless of status) to confirm what's currently registered:
+
+
+SQL
+
+RMAN> LIST BACKUP;
+Quick Troubleshooting Table
+You See...	Root Cause	Next Step
+"specification does not match..."	No expired backups in RMAN repository	Run CROSSCHECK if needed; all good
+Expected expired backups not shown	CROSSCHECK not run, or backups deleted and metadata cleaned	Run CROSSCHECK, then LIST again
+If you need scripts to automate these checks or want to understand more about backup status management with RMAN, let me know!
+
+SSH connection check failed Connection to the SSH daemon (sshd) on the target host failed with the following error : No more authentication methods available Ensure that SSH daemon (sshd) on the target host is able to respond to login requests on the provided sshd port 22.Ensure the provided user name and password or ssh keys are correct.Ensure that the property PasswordAuthentication is set to yes in the SSHD configuration file (sshd_config) on the remote
+
+You're encountering the following SSH connection failure:
+
+No more authentication methods available
+
+This error indicates that the SSH client attempted all available authentication methods (e.g., password, public key), but none succeeded. Here’s a step-by-step approach to diagnose and resolve it.
+
+Key Causes and Checks for SSH "No more authentication methods available"
+1. Credential Issues
+Username: Double-check the username you provided for SSH.
+Password or SSH Key:
+If using a password, make sure it’s correct.
+If using a key, ensure the private key exists on your client and the matching public key is properly configured in the remote user’s ~/.ssh/authorized_keys.
+2. SSH Daemon Configuration (sshd_config)
+Check Authentication Methods:
+
+You must allow the type of authentication you’re using.
+For password auth: The following must be in /etc/ssh/sshd_config:
+
+Unknown
+
+PasswordAuthentication yes
+For key auth: Ensure:
+
+Unknown
+
+PubkeyAuthentication yes
+and the authorized_keys file permissions are correct.
+After making changes to sshd_config, always:
+
+
+Bash
+
+sudo systemctl restart sshd     # Or 'sudo service sshd restart'
+3. SSH Key Permissions
+On the target (remote) host:
+
+Bash
+
+chmod 700 ~/.ssh
+chmod 600 ~/.ssh/authorized_keys
+4. SSH Daemon Running and Port Open
+Make sure the SSH daemon is running:
+
+Bash
+
+sudo systemctl status sshd
+The port (default 22) must be open and reachable. Test with:
+
+Bash
+
+telnet <host> 22    # Or: nc -zv <host> 22
+5. Firewall and Network Considerations
+Ensure no firewall or network ACLs are blocking port 22.
+Troubleshooting Steps:
+From your local machine, try:
+
+
+Bash
+
+ssh -v username@hostname
+The -v (verbose) switch will provide detailed authentication steps and error messages.
+Review sshd logs on the remote host:
+
+Logs usually in /var/log/auth.log (Ubuntu) or /var/log/secure (RHEL/CentOS):
+
+Bash
+
+tail -f /var/log/auth.log
+If editing /etc/ssh/sshd_config
+
+After ensuring PasswordAuthentication yes is set, restart sshd as above.
+Remove any restrictions on AllowUsers or DenyUsers that might block your user.
+Summary Table
+Problem	Solution
+Wrong credentials	Correct username/password or SSH key
+Password auth disabled	Set PasswordAuthentication yes in sshd_config
+Key auth misconfigured	Set PubkeyAuthentication yes and fix permissions
+SSH daemon not running	Start or restart sshd
+Port/firewall blocked	Open port 22 on firewall/network
+Next Steps:
+Verify your credentials, check the SSH configuration, ensure the daemon is running, and inspect your logs for precise causes.
+
+Would you like a specific command or script to run on your client or server to check these settings automatically?
+
+give me one command to remove all these files/ TOOLSB_1_1117361587_62265.arc
+
+TOOLSB_1_1117361587_62266.arc
+
+TOOLSB_1_1117361587_62267.arc
+
+TOOLSB_1_1117361587_62268.arc
+
+TOOLSB_1_1117361587_62269.arc
+
+TOOLSB_1_1117361587_62270.arc
+
+TOOLSB_1_1117361587_62271.arc
+
+TOOLSB_1_1117361587_62272.arc
+
+TOOLSB_1_1117361587_62273.arc
+
+TOOLSB_1_1117361587_62274.arc
+
+TOOLSB_1_1117361587_62275.arc
+
+TOOLSB_1_1117361587_62276.arc
+
+TOOLSB_1_1117361587_62277.arc
+
+TOOLSB_1_1117361587_62278.arc
+
+TOOLSB_1_1117361587_62279.arc
+
+TOOLSB_1_1117361587_62280.arc
+
+TOOLSB_1_1117361587_62281.arc
+
+TOOLSB_1_1117361587_62282.arc
+
+TOOLSB_1_1117361587_62283.arc
+
+TOOLSB_1_1117361587_62284.arc
+
+TOOLSB_1_1117361587_62285.arc
+
+TOOLSB_1_1117361587_62286.arc
+
+TOOLSB_1_1117361587_62287.arc
+
+TOOLSB_1_1117361587_62288.arc
+
+TOOLSB_1_1117361587_62289.arc
+
+TOOLSB_1_1117361587_62290.arc
+
+TOOLSB_1_1117361587_62291.arc
+
+TOOLSB_1_1117361587_62292.arc
+
+TOOLSB_1_1117361587_62293.arc
+
+TOOLSB_1_1117361587_62294.arc
+
+TOOLSB_1_1117361587_62295.arc
+
+TOOLSB_1_1117361587_62296.arc
+
+TOOLSB_1_1117361587_62297.arc
+
+TOOLSB_1_1117361587_62298.arc
+
+TOOLSB_1_1117361587_62299.arc
+
+TOOLSB_1_1117361587_62300.arc
+
+TOOLSB_1_1117361587_62301.arc
+
+TOOLSB_1_1117361587_62302.arc
+
+TOOLSB_1_1117361587_62303.arc
+
+TOOLSB_1_1117361587_62304.arc
+
+TOOLSB_1_1117361587_62305.arc
+
+TOOLSB_1_1117361587_62306.arc
+
+TOOLSB_1_1117361587_62307.arc
+
+TOOLSB_1_1117361587_62308.arc
+
+TOOLSB_1_1117361587_62309.arc
+
+TOOLSB_1_1117361587_62310.arc
+
+TOOLSB_1_1117361587_62311.arc
+
+TOOLSB_1_1117361587_62312.arc
+
+TOOLSB_1_1117361587_62313.arc
+
+TOOLSB_1_1117361587_62314.arc
+
+TOOLSB_1_1117361587_62315.arc
+
+TOOLSB_1_1117361587_62316.arc
+
+TOOLSB_1_1117361587_62317.arc
+
+TOOLSB_1_1117361587_62318.arc
+
+TOOLSB_1_1117361587_62319.arc
+
+TOOLSB_1_1117361587_62320.arc
+
+TOOLSB_1_1117361587_62321.arc
+
+TOOLSB_1_1117361587_62322.arc
+
+TOOLSB_1_1117361587_62323.arc
+
+TOOLSB_1_1117361587_62324.arc
+
+TOOLSB_1_1117361587_62325.arc
+
+TOOLSB_1_1117361587_62326.arc
+
+TOOLSB_1_1117361587_62327.arc
+
+TOOLSB_1_1117361587_62328.arc
+
+TOOLSB_1_1117361587_62329.arc
+
+TOOLSB_1_1117361587_62330.arc
+
+TOOLSB_1_1117361587_62331.arc
+
+TOOLSB_1_1117361587_62332.arc
+
+TOOLSB_1_1117361587_62333.arc
+
+TOOLSB_1_1117361587_62334.arc
+
+TOOLSB_1_1117361587_62335.arc
+
+TOOLSB_1_1117361587_62336.arc
+
+TOOLSB_1_1117361587_62337.arc
+
+TOOLSB_1_1117361587_62338.arc
+
+TOOLSB_1_1117361587_62339.arc
+
+TOOLSB_1_1117361587_62340.arc
+
+TOOLSB_1_1117361587_62341.arc
+
+TOOLSB_1_1117361587_62342.arc
+
+TOOLSB_1_1117361587_62343.arc
+
+TOOLSB_1_1117361587_62344.arc
+
+TOOLSB_1_1117361587_62345.arc
+
+TOOLSB_1_1117361587_62346.arc
+
+TOOLSB_1_1117361587_62347.arc
+
+TOOLSB_1_1117361587_62348.arc
+
+TOOLSB_1_1117361587_62349.arc
+
+TOOLSB_1_1117361587_62350.arc
+
+TOOLSB_1_1117361587_62351.arc
+
+TOOLSB_1_1117361587_62352.arc
+
+TOOLSB_1_1117361587_62353.arc
+
+TOOLSB_1_1117361587_62354.arc
+
+TOOLSB_1_1117361587_62355.arc
+
+TOOLSB_1_1117361587_62356.arc
+
+TOOLSB_1_1117361587_62357.arc
+
+TOOLSB_1_1117361587_62358.arc
+
+TOOLSB_1_1117361587_62359.arc
+
+TOOLSB_1_1117361587_62360.arc
+
+TOOLSB_1_1117361587_62361.arc
+
+TOOLSB_1_1117361587_62362.arc
+
+TOOLSB_1_1117361587_62363.arc
+
+TOOLSB_1_1117361587_62364.arc
+
+TOOLSB_1_1117361587_62365.arc
+
+TOOLSB_1_1117361587_62366.arc
+
+TOOLSB_1_1117361587_62367.arc
+
+TOOLSB_1_1117361587_62368.arc
+
+TOOLSB_1_1117361587_62369.arc
+
+TOOLSB_1_1117361587_62370.arc
+
+TOOLSB_1_1117361587_62371.arc
+
+TOOLSB_1_1117361587_62372.arc
+
+TOOLSB_1_1117361587_62373.arc
+
+TOOLSB_1_1117361587_62374.arc
+
+TOOLSB_1_1117361587_62375.arc
+
+TOOLSB_1_1117361587_62376.arc
+
+TOOLSB_1_1117361587_62377.arc
+
+Code Generated by Sidekick is for learning and experimentation purposes only. For other use cases, please see the guidance linked here for accessing and using the Deloitte-approved tools GitHub Copilot or AWS Codewhisperer.
+
+You can remove all these files at once using a wildcard with the rm command, if all files are in the same directory and they follow the naming pattern you’ve shown.
+
+Run this command in your shell from the directory where the files are located:
+
+
+Bash
+
+# Code Generated by Sidekick is for learning and experimentation purposes only.
+rm TOOLSB_1_1117361587_*.arc
+Safety tip:
+Before running the rm command, you can list them to confirm using:
+
+
+Bash
+
+# Code Generated by Sidekick is for learning and experimentation purposes only.
+ls TOOLSB_1_1117361587_*.arc
+If the list matches your intentions, proceed with the rm command above.
+
+If the files are in another directory (e.g., /oraexp/standby_BACKUP/), use:
+
+
+Bash
+
+# Code Generated by Sidekick is for learning and experimentation purposes only.
+rm /oraexp/standby_BACKUP/TOOLSB_1_1117361587_*.arc
+Warning: This deletes the files permanently and cannot be undone.
+
+Would you like a command that moves them to a backup folder instead, for additional safety?
+
+there are other files also..
+
+Absolutely, let’s focus on deleting just the files matching your pattern, even if there are other unrelated files in the same directory.
+
+How to Delete Only the Matching Files
+You can use a wildcard pattern that precisely matches the files you listed (i.e., those starting with TOOLSB_1_1117361587_ and ending with .arc). Other files will remain untouched.
+
+
+Bash
+
+# Code Generated by Sidekick is for learning and experimentation purposes only.
+rm TOOLSB_1_1117361587_*.arc
+If files are in a specific directory:
+Replace the path as needed, for example:
+
+Bash
+
+# Code Generated by Sidekick is for learning and experimentation purposes only.
+rm /oraexp/standby_BACKUP/TOOLSB_1_1117361587_*.arc
+Safety Tip
+Preview before deleting:
+Run this command to see which files will be removed:
+
+
+Bash
+
+# Code Generated by Sidekick is for learning and experimentation purposes only.
+ls TOOLSB_1_1117361587_*.arc
+Or, with the full path:
+
+
+Bash
+
+# Code Generated by Sidekick is for learning and experimentation purposes only.
+ls /oraexp/standby_BACKUP/TOOLSB_1_1117361587_*.arc
+All in One: Interactive Deletion (Optional)
+If you want to confirm each file before deletion:
+
+
+Bash
+
+# Code Generated by Sidekick is for learning and experimentation purposes only.
+rm -i TOOLSB_1_1117361587_*.arc
+This will prompt you for each matching file.
+
+Summary
+Only files that EXACTLY match the pattern TOOLSB_1_1117361587_*.arc will be affected.
+Other files in the directory are not touched.
+If you need a pattern for a different set of files or need help identifying files before deletion, let me know!
+
+rm -rf all these file i submitted
+
+Code Generated by Sidekick is for learning and experimentation purposes only. For other use cases, please see the guidance linked here for accessing and using the Deloitte-approved tools GitHub Copilot or AWS Codewhisperer.
+
+Use this command to forcefully remove ALL the files you listed:
+If the files are all in your current directory:
+
+
+Bash
+
+# Code Generated by Sidekick is for learning and experimentation purposes only.
+rm -rf TOOLSB_1_1117361587_*.arc
+If the files are in another directory (for example: /oraexp/standby_BACKUP/), use:
+
+
+Bash
+
+# Code Generated by Sidekick is for learning and experimentation purposes only.
+rm -rf /oraexp/standby_BACKUP/TOOLSB_1_1117361587_*.arc
+Explanations:
+
+-r = recursive (for directories; not needed for single files, but including it is harmless for this pattern).
+-f = force (suppresses prompts/errors for nonexistent files).
+Safety Tip:
+To double-check before running this destructive command, use:
+
+
+Bash
+
+# Code Generated by Sidekick is for learning and experimentation purposes only.
+ls TOOLSB_1_1117361587_*.arc
+This will confirm exactly what will be deleted.
+
+Warning:
+This command will permanently delete all files matching TOOLSB_1_1117361587_*.arc and cannot be undone. No other files will be affected.
+
+Let me know if you need to delete files matching a different pattern or if you want to avoid using -f for extra safety.
+
+mention all file names instead of *
+
+Code Generated by Sidekick is for learning and experimentation purposes only. For other use cases, please see the guidance linked here for accessing and using the Deloitte-approved tools GitHub Copilot or AWS Codewhisperer.
+
+Here’s the command listing every file name you submitted:
+
+Bash
+
+# Code Generated by Sidekick is for learning and experimentation purposes only.
+rm -rf TOOLSB_1_1117361587_62265.arc TOOLSB_1_1117361587_62266.arc TOOLSB_1_1117361587_62267.arc TOOLSB_1_1117361587_62268.arc TOOLSB_1_1117361587_62269.arc TOOLSB_1_1117361587_62270.arc TOOLSB_1_1117361587_62271.arc TOOLSB_1_1117361587_62272.arc TOOLSB_1_1117361587_62273.arc TOOLSB_1_1117361587_62274.arc TOOLSB_1_1117361587_62275.arc TOOLSB_1_1117361587_62276.arc TOOLSB_1_1117361587_62277.arc TOOLSB_1_1117361587_62278.arc TOOLSB_1_1117361587_62279.arc TOOLSB_1_1117361587_62280.arc TOOLSB_1_1117361587_62281.arc TOOLSB_1_1117361587_62282.arc TOOLSB_1_1117361587_62283.arc TOOLSB_1_1117361587_62284.arc TOOLSB_1_1117361587_62285.arc TOOLSB_1_1117361587_62286.arc TOOLSB_1_1117361587_62287.arc TOOLSB_1_1117361587_62288.arc TOOLSB_1_1117361587_62289.arc TOOLSB_1_1117361587_62290.arc TOOLSB_1_1117361587_62291.arc TOOLSB_1_1117361587_62292.arc TOOLSB_1_1117361587_62293.arc TOOLSB_1_1117361587_62294.arc TOOLSB_1_1117361587_62295.arc TOOLSB_1_1117361587_62296.arc TOOLSB_1_1117361587_62297.arc TOOLSB_1_1117361587_62298.arc TOOLSB_1_1117361587_62299.arc TOOLSB_1_1117361587_62300.arc TOOLSB_1_1117361587_62301.arc TOOLSB_1_1117361587_62302.arc TOOLSB_1_1117361587_62303.arc TOOLSB_1_1117361587_62304.arc TOOLSB_1_1117361587_62305.arc TOOLSB_1_1117361587_62306.arc TOOLSB_1_1117361587_62307.arc TOOLSB_1_1117361587_62308.arc TOOLSB_1_1117361587_62309.arc TOOLSB_1_1117361587_62310.arc TOOLSB_1_1117361587_62311.arc TOOLSB_1_1117361587_62312.arc TOOLSB_1_1117361587_62313.arc TOOLSB_1_1117361587_62314.arc TOOLSB_1_1117361587_62315.arc TOOLSB_1_1117361587_62316.arc TOOLSB_1_1117361587_62317.arc TOOLSB_1_1117361587_62318.arc TOOLSB_1_1117361587_62319.arc TOOLSB_1_1117361587_62320.arc TOOLSB_1_1117361587_62321.arc TOOLSB_1_1117361587_62322.arc TOOLSB_1_1117361587_62323.arc TOOLSB_1_1117361587_62324.arc TOOLSB_1_1117361587_62325.arc TOOLSB_1_1117361587_62326.arc TOOLSB_1_1117361587_62327.arc TOOLSB_1_1117361587_62328.arc TOOLSB_1_1117361587_62329.arc TOOLSB_1_1117361587_62330.arc TOOLSB_1_1117361587_62331.arc TOOLSB_1_1117361587_62332.arc TOOLSB_1_1117361587_62333.arc TOOLSB_1_1117361587_62334.arc TOOLSB_1_1117361587_62335.arc TOOLSB_1_1117361587_62336.arc TOOLSB_1_1117361587_62337.arc TOOLSB_1_1117361587_62338.arc TOOLSB_1_1117361587_62339.arc TOOLSB_1_1117361587_62340.arc TOOLSB_1_1117361587_62341.arc TOOLSB_1_1117361587_62342.arc TOOLSB_1_1117361587_62343.arc TOOLSB_1_1117361587_62344.arc TOOLSB_1_1117361587_62345.arc TOOLSB_1_1117361587_62346.arc TOOLSB_1_1117361587_62347.arc TOOLSB_1_1117361587_62348.arc TOOLSB_1_1117361587_62349.arc TOOLSB_1_1117361587_62350.arc TOOLSB_1_1117361587_62351.arc TOOLSB_1_1117361587_62352.arc TOOLSB_1_1117361587_62353.arc TOOLSB_1_1117361587_62354.arc TOOLSB_1_1117361587_62355.arc TOOLSB_1_1117361587_62356.arc TOOLSB_1_1117361587_62357.arc TOOLSB_1_1117361587_62358.arc TOOLSB_1_1117361587_62359.arc TOOLSB_1_1117361587_62360.arc TOOLSB_1_1117361587_62361.arc TOOLSB_1_1117361587_62362.arc TOOLSB_1_1117361587_62363.arc TOOLSB_1_1117361587_62364.arc TOOLSB_1_1117361587_62365.arc TOOLSB_1_1117361587_62366.arc TOOLSB_1_1117361587_62367.arc TOOLSB_1_1117361587_62368.arc TOOLSB_1_1117361587_62369.arc TOOLSB_1_1117361587_62370.arc TOOLSB_1_1117361587_62371.arc TOOLSB_1_1117361587_62372.arc TOOLSB_1_1117361587_62373.arc TOOLSB_1_1117361587_62374.arc TOOLSB_1_1117361587_62375.arc TOOLSB_1_1117361587_62376.arc TOOLSB_1_1117361587_62377.arc
+Tips:
+
+Paste the command as valid shell input.
+You can add/remove individual files from the command as needed.
+Use ls in the same way to preview which files would be deleted.
+If files are in another directory (for example: /oraexp/standby_BACKUP/), just prefix each filename with the full path:
+
+
+Bash
+
+# Code Generated by Sidekick is for learning and experimentation purposes only.
+rm -rf /oraexp/standby_BACKUP/TOOLSB_1_1117361587_62265.arc ... /oraexp/standby_BACKUP/TOOLSB_1_1117361587_62377.arc
+Would you like a version of the command for a different file list, or a safer "move to backup" instead of delete?
+
+how to check the dml of table in oracle database
+
+Great question! Let’s clarify what you mean by “check the DML of a table in Oracle.” In Oracle Database, DML (Data Manipulation Language) refers to operations like INSERT, UPDATE, DELETE, and SELECT. If you want to check the DML activity (i.e., see who changed what, when, or view the recent data modifications) on a table, you have several options depending on your requirements.
+
+How to Check DML Activity on an Oracle Table
+1. Check DML by Auditing (If Enabled)
+Oracle Auditing lets you track DML statements at the database level.
+If auditing is enabled, review the audit tables:
+
+SQL
+
+-- Code Generated by Sidekick is for learning and experimentation purposes only.
+SELECT * FROM DBA_AUDIT_TRAIL WHERE OBJ_NAME = 'YOUR_TABLE_NAME';
+For fine-grained auditing (FGA):
+
+SQL
+
+-- Code Generated by Sidekick is for learning and experimentation purposes only.
+SELECT * FROM DBA_FGA_AUDIT_TRAIL WHERE OBJECT_NAME = 'YOUR_TABLE_NAME';
+Note: Audit must be enabled for the relevant DML.
+
+2. Check DML Using Flashback Data Archive (If Enabled)
+If Oracle Flashback Archive (Total Recall) is enabled, you can view historical row changes:
+
+SQL
+
+-- Code Generated by Sidekick is for learning and experimentation purposes only.
+SELECT VERSIONS_STARTTIME, VERSIONS_ENDTIME, VERSIONS_OPERATION, *
+FROM YOUR_TABLE_NAME
+VERSIONS BETWEEN TIMESTAMP MINVALUE AND MAXVALUE
+WHERE <your conditions>;
+3. Check DML with Triggers
+If neither Auditing nor Flashback is enabled and you want to start tracking DML from now on, add a trigger:
+
+SQL
+
+-- Code Generated by Sidekick is for learning and experimentation purposes only.
+CREATE OR REPLACE TRIGGER YOUR_TABLE_DML_LOG
+AFTER INSERT OR UPDATE OR DELETE ON YOUR_TABLE_NAME
+FOR EACH ROW
+BEGIN
+  INSERT INTO DML_LOG_TABLE (table_name, dml_type, dml_date, user_name)
+  VALUES ('YOUR_TABLE_NAME', 
+          CASE WHEN INSERTING THEN 'INSERT'
+               WHEN UPDATING THEN 'UPDATE'
+               WHEN DELETING THEN 'DELETE'
+          END, 
+          SYSDATE, 
+          USER);
+END;
+/
+Create the DML_LOG_TABLE first to store the log.
+4. Check Recent DML Through LogMiner (Advanced)
+Use the Oracle LogMiner tool to mine redo logs for DML activities.
+This is complex and requires DBA privileges:
+You must add redo log files for mining.
+Query the V$LOGMNR_CONTENTS view for DML statements.
+5. Check DML by Reviewing Application Logs
+Sometimes, the application records user actions in its own logs. This is outside the Oracle database but can be useful if DB-level audit is not enabled.
+Summary Table
+Method	Real-Time	Historical	Setup Needed
+Auditing (Standard/FGA)	Yes	Yes	May require setup
+Flashback Data Archive	No	Yes	Requires archiving
+Triggers	Yes	From now on	Need to create now
+LogMiner	No	Yes	DBA, advanced setup
+Next Steps
+If you only want future tracking: Set up auditing or a DML trigger.
+If you need history: Check if auditing or Flashback was previously enabled.
+If you want to see current transactions: View uncommitted changes with SQL queries (but won't show INSERT/UPDATE/DELETE sources).
+Let me know which of these fits your situation (auditing, triggers, Flashback, etc.), and I can provide tailored setup instructions or queries!
+
+give me same command just for one table.....SELECT TABLE_OWNER,TABLE_NAME,INSERTS,UPDATES,DELETES,TIMESTAMP AS LAST_CHANGE
+
+FROM DBA_TAB_MODIFICATIONS
+
+WHERE TO_CHAR(TIMESTAMP,'DD.MM.YYYY') = TO_CHAR(sysdate,'DD.MM.YYYY')
+
+and table_owner='SCHEMA_NAME'
+
+and table_name in ('MY LIST OF TABLES')
+
+Code Generated by Sidekick is for learning and experimentation purposes only. For other use cases, please see the guidance linked here for accessing and using the Deloitte-approved tools GitHub Copilot or AWS Codewhisperer.
+
+Here’s the command to show DML statistics for one specific table only, for today, in the given schema (replace SCHEMA_NAME and TABLE_NAME as needed):
+
+
+SQL
+
+-- Code Generated by Sidekick is for learning and experimentation purposes only.
+SELECT 
+  TABLE_OWNER,
+  TABLE_NAME,
+  INSERTS,
+  UPDATES,
+  DELETES,
+  TIMESTAMP AS LAST_CHANGE
+FROM 
+  DBA_TAB_MODIFICATIONS
+WHERE
+  TO_CHAR(TIMESTAMP,'DD.MM.YYYY') = TO_CHAR(SYSDATE,'DD.MM.YYYY')
+  AND TABLE_OWNER = 'SCHEMA_NAME'
+  AND TABLE_NAME = 'YOUR_TABLE_NAME';
+If you want to check multiple tables:
+Replace the last line with:
+
+
+SQL
+
+-- Code Generated by Sidekick is for learning and experimentation purposes only.
+AND TABLE_NAME IN ('TABLE1','TABLE2','TABLE3')
+Tip:
+
+This view (DBA_TAB_MODIFICATIONS) gets updated after a commit and sometimes only after a gather statistics call on the table.
+Replace SCHEMA_NAME and YOUR_TABLE_NAME with actual values as needed.
+Would you like to see a version showing DML for a list of tables in one line, or anything else?
+Code Generated by Sidekick is for learning and experimentation purposes only. For other use cases, please see the guidance linked here for accessing and using the Deloitte-approved tools GitHub Copilot or AWS Codewhisperer.
+
+Here is the command tailored for one table (replace SCHEMA_NAME and TABLE_NAME with your actual values):
+
+
+SQL
+
+-- Code Generated by Sidekick is for learning and experimentation purposes only.
+SELECT TABLE_OWNER,
+       TABLE_NAME,
+       INSERTS,
+       UPDATES,
+       DELETES,
+       TIMESTAMP AS LAST_CHANGE
+  FROM DBA_TAB_MODIFICATIONS
+ WHERE TO_CHAR(TIMESTAMP, 'DD.MM.YYYY') = TO_CHAR(SYSDATE, 'DD.MM.YYYY')
+   AND TABLE_OWNER = 'SCHEMA_NAME'
+   AND TABLE_NAME = 'TABLE_NAME';
+If you need to run this for a different date, or for a list of tables, let me know!
+
+how can i add date for same command
+
+Code Generated by Sidekick is for learning and experimentation purposes only. For other use cases, please see the guidance linked here for accessing and using the Deloitte-approved tools GitHub Copilot or AWS Codewhisperer.
+
+You can add any date filter by changing the TO_CHAR(TIMESTAMP, 'DD.MM.YYYY') portion to your desired date (e.g., '13.10.2025'). Here’s the updated query:
+
+
+SQL
+
+-- Code Generated by Sidekick is for learning and experimentation purposes only.
+SELECT 
+  TABLE_OWNER,
+  TABLE_NAME,
+  INSERTS,
+  UPDATES,
+  DELETES,
+  TIMESTAMP AS LAST_CHANGE
+FROM 
+  DBA_TAB_MODIFICATIONS
+WHERE 
+  TO_CHAR(TIMESTAMP,'DD.MM.YYYY') BETWEEN '10-12-2024' AND '14.10.2025'
+  AND TABLE_OWNER = 'GAE17'
+  AND TABLE_NAME = 'TEMP_COMPVALUES';
+  
+  SELECT TABLE_OWNER, 
+   TABLE_NAME, 
+   INSERTS,
+   UPDATES,
+   DELETES,
+   TIMESTAMP AS `LAST_CHANGE`
+FROM  ALL_TAB_MODIFICATIONS
+WHERE TO_CHAR(TIMESTAMP,'DD/MM/YYYY') = TO_CHAR(sysdate,'DD/MM/YYYY') 
+ORDER BY LAST_CHANGE DESC;
+
+
+-- Code Generated by Sidekick is for learning and experimentation purposes only.
+COLUMN TABLE_OWNER FORMAT A20
+COLUMN TABLE_NAME FORMAT A30
+COLUMN LAST_CHANGE FORMAT A20
+SET LINESIZE 120
+SET PAGESIZE 50
+
+SELECT 
+  TABLE_OWNER,
+  TABLE_NAME,
+  INSERTS,
+  UPDATES,
+  DELETES,
+  TO_CHAR(TIMESTAMP, 'DD/MM/YYYY HH24:MI:SS') AS LAST_CHANGE
+FROM 
+  ALL_TAB_MODIFICATIONS
+WHERE
+  TABLE_OWNER = 'GAE17'
+  AND TABLE_NAME = 'TEMP_COMPVALUES'
+  AND TO_CHAR(TIMESTAMP, 'DD/MM/YYYY') = TO_CHAR(SYSDATE, 'DD/MM/YYYY')
+ORDER BY 
+  LAST_CHANGE DESC;
+======================================================================================================================================================================
+ushdc8552 source 
+
+USAWSTAXST00432 target
+ 
+TOOLSA:RCATPTLMIRP:k3g7_R6V:CLSS_RMANCAT
+##########
+CREATE SMALLFILE TABLESPACE "RCAT_PTLMIRP" DATAFILE '/opt/data/TOOLSA/RCAT_PTLMIRP_01.dbf' SIZE 60M REUSE LOGGING EXTENT MANAGEMENT LOCAL SEGMENT SPACE MANAGEMENT AUTO
+ 
+#########
+CREATE USER "RCATPTLMIRP" PROFILE "DEFAULT" IDENTIFIED BY "k3g7_R6V" DEFAULT TABLESPACE "RCAT_PTLMIRP" TEMPORARY TABLESPACE "TEMP" ACCOUNT UNLOCK;
+GRANT ADMINISTER DATABASE TRIGGER TO "RCATPTLMIRP";
+GRANT CREATE ANY CONTEXT TO "RCATPTLMIRP";
+GRANT DROP ANY CONTEXT TO "RCATPTLMIRP";
+GRANT UNLIMITED TABLESPACE TO "RCATPTLMIRP";
+GRANT "CONNECT" TO "RCATPTLMIRP";
+GRANT "RECOVERY_CATALOG_OWNER_VPD" TO "RCATPTLMIRP";
+GRANT "RESOURCE" TO "RCATPTLMIRP";
+ 
+##### CLSQ database
+we need to edit tns in CLSQ for network conneCLSQion
+##### 
+rman catalog RCATPTLMIRP/k3g7_R6V@TOOLSA.US.DELOITTE.COM
+###### 
+RMAN> create catalog;
+ 
+recovery catalog created
+ hI Z
+#####
+rman target sys/M4tgQ1yh catalog RCATPTLMIRP/k3g7_R6V@TOOLSA.US.DELOITTE.COM
+
+#####
+RMAN> REGISTER DATABASE;
+ 
+database registered in recovery catalog
+starting full resync of recovery catalog
+full resync complete
+#####
+RMAN> REPORT SCHEMA;
+ 
+Report of database schema for database with db_unique_name CLSQ
+ 
+List of Permanent Datafiles
+===========================
+File Size(MB) Tablespace           RB segs Datafile Name
+---- -------- -------------------- ------- ------------------------
+1    910      SYSTEM               YES     /opt/data/CLSQ/system01.dbf
+3    570      SYSAUX               NO      /opt/data/CLSQ/sysaux01.dbf
+4    340      UNDOTBS1             YES     /opt/data/CLSQ/undotbs01.dbf
+7    5        USERS                NO      /opt/data/CLSQ/users01.dbf
+ 
+List of Temporary Files
+=======================
+File Size(MB) Tablespace           Maxsize(MB) Tempfile Name
+---- -------- -------------------- ----------- --------------------
+1    32       TEMP                 32767       /opt/data/CLSQ/temp01.dbf
+============================================
+How to upgrade catalog database....
+rman target sys/M4tgQ1yh catalog RCATPTLMIRP/k3g7_R6V@TOOLSA.US.DELOITTE.COM
+
+upgrade catalog;
+ SELECT * FROM rcver;
+ ------------
+ PPMD1:SYS:K1ftP2kg:SYS
+PPMD1:SYSTEM:bR3a4bad:SYSTEM
+TOOLSA:RMANOER:k3g7_R6V:OER_RMANCAT
+TOOLSA:RMANPPMD1:k3g7_R6V:PPMD1_RMANCAT
+-
+rman target sys/K1ftP2kg catalog RMANSYMNP/k3g7_R6V@TOOLSA
+
+rman target sys/K1ftP2kg catalog RCATDEIHRP1/k3g7_R6V@TOOLSA 
+rman target sys/K1ftP2kg catalog RCATIHR1/k3g7_R6V@TOOLSA
+
+rman target / catalog RCATAPASYMP/k3g7_R6V@TOOLSA 
+
+
+
+st |grep GAE24 | grep COS1
+-----
+
+
+usawstaxqa00028
+rman target sys/M4tgQ1yh catalog RMANAPASYMP/k3g7_R6V@TOOLSA
+
+rman target sys/M4tgQ1yh catalog RMANSYMN2P/k3g7_R6V@TOOLSA
+rman target sys/M4tgQ1yh catalog RMANSYMN2P/k3g7_R6V@TOOLSA
+rman target sys/M4tgQ1yh catalog RCATGLTST/k3g7_R6V@TOOLSA
+rman target sys/M4tgQ1yh catalog RCATSTG1/k3g7_R6V@TOOLSA
+rman target sys/M4tgQ1yh catalog RCATSTG2/k3g7_R6V@TOOLSA
+rman target sys/M4tgQ1yh catalog RCATPTST2/k3g7_R6V@TOOLSA
+
+upgrade catalog;
+
+usawstaxqa00026
+ 
+rman target sys/M4tgQ1yh catalog RCATPTLQA1/k3g7_R6V@TOOLSA 
+rman target sys/M4tgQ1yh catalog RCATORGQA2/k3g7_R6V@TOOLSA
+rman target sys/M4tgQ1yh catalog RCATORGQA1/k3g7_R6V@TOOLSA
+
+SELECT version, status FROM   rcver
+
+SELECT sid,
+       serial#,
+       username,
+       status,
+       machine,
+       program,
+       module
+FROM   v$session
+WHERE  username = 'RCATSUP1';   -- replace with catalog-owner user
+=============================\\\\
+Relational Database Services ---
+
+Relational database service is an AWS service that let's you easily create manage and scale 
+databases in cloud with out handling the underlying hardware or software yourself
+Relational Database Services features
+Manages  No need to handle server setup
+Multiple engines   Chose your favourite database
+Backups    Data is safe and recoverable
+Scalable -Grow or shrink as needed
+High availability   Less downtime,more reliability
+
+Reliability means --You can trust it to work as expected, most of the time
+In AWS (and technology in general)reliability means the 
+service is available, performs correctly and recovers quickly from problems.
+Your database is almost always available when you need it
+If something goes wrong AWS AAUUTTOOMMAATTIICCAALLYY fixes or switches
+ to a backup so your database keeps running 
+Your database is safe and not easily lost
+===============
+Example of Relational Database Services management
+Automatic backups
+Software updates
+Automatic failover
+Scaling resources
+Monitoring and Alerts
+Automated maintnance
+===
+Backups   save copies of your data AAUUTTOOMMAATTIICCAALLYY
+Updates   installs security patches AAUUTTOOMMAATTIICCAALLYY
+Failover  switches to backup if main fails
+Scaling   increase size/performance easily
+Monitoring watches for problems and alerts you
+Maintenance handles routine task AAUUTTOOMMAATTIICCAALLYY
+--
+Relational Database Services handles
+Hardware and server setup
+Database software and patching
+Backups and automated recovery
+Basic monitoring and scaling
+---
+What a DBA still does
+Database design--- Creating tables,indexs and relationships
+Performance tunning---Optimizing queries and adjusting configurations
+Security ---- Managing users,roles and permissions
+Data migration --Moving data into and out Relational Database Services 	
+Advanced troublshooting --investigating complex issues
+Custom backup/restore stratgies --Behind what Relational Database Services offers by default
+Complaince and auditing -- Ensure data meets regulatory requirements.
+
+Thanks for the reminder and info from Jeff. I will update by tomorrow afternoon
+
+---------------------
+RMAN> upgrade catalog;
+upgrade catalog;
+recovery catalog owner is RCATDEIHRP1
+enter UPGRADE CATALOG command again to confirm catalog upgrade
+
+
+RMAN> upgrade catalog;
+upgrade catalog;
+recovery catalog upgraded to version 19.27.00.00.00
+DBMS_RCVMAN package upgraded to version 19.27.00.00
+DBMS_RCVCAT package upgraded to version 19.27.00.00.
+COP2
+IHR3
+ASP1
+ASP2
+ASP3
+BT
+COS2
+COS1
+IHR1
+IHR2
+COP1
+
+RMAN>
+
+rman target / catalog RCATCOP2/k3g7_R6V@TOOLSA
+rman target / catalog RCATIHR3/k3g7_R6V@TOOLSA
+rman target / catalog RCATASP1/k3g7_R6V@TOOLSA
+rman target / catalog RCATASP2/k3g7_R6V@TOOLSA
+rman target / catalog RCATASP3/k3g7_R6V@TOOLSA
+rman target / catalog RCATBT/k3g7_R6V@TOOLSA
+rman target / catalog RCATCOS2/k3g7_R6V@TOOLSA
+rman target / catalog RCATCOS1/k3g7_R6V@TOOLSA
+rman target / catalog RCATIHR1/k3g7_R6V@TOOLSA
+rman target / catalog RCATIHR2/k3g7_R6V@TOOLSA
+rman target / catalog RCATCOP1/k3g7_R6V@TOOLSA
+
+
+
+
+
+
+
+rman target sys/M4tgQ1yh catalog RCATPTLDV1/k3g7_R6V@TOOLSA
+rman target sys/M4tgQ1yh catalog RCATCTDV1/k3g7_R6V@TOOLSA
+rman target sys/M4tgQ1yh catalog RCATORGDV1/k3g7_R6V@TOOLSA
+rman target sys/M4tgQ1yh catalog RCATIHRDEV1/k3g7_R6V@TOOLSA
+rman target sys/M4tgQ1yh catalog RCATORGDV5/k3g7_R6V@TOOLSA
+rman target sys/M4tgQ1yh catalog RCATIHRDEV2/k3g7_R6V@TOOLSA
+rman target sys/M4tgQ1yh catalog RCATORGMIG/k3g7_R6V@TOOLSA
+rman target sys/M4tgQ1yh catalog RCATBTDV1/k3g7_R6V@TOOLSA
+rman target sys/M4tgQ1yh catalog RCATGESRPDV1/k3g7_R6V@TOOLSA
+rman target sys/M4tgQ1yh catalog RCATORGDV3/k3g7_R6V@TOOLSA
+rman target sys/M4tgQ1yh catalog RCATORGDV4/k3g7_R6V@TOOLSA 
+
+upgrade catalog
+We have already CLSQ catalog for ser can we change name with CLSQ_AZ
+
+memory 
+NLS character set 
+NLS nchar character set should be same as onpem servers.
+
+lsnrctl 
+tns  TOOLSA ,CLSQ
+in toolsa 
+sqlnet 
+
+
+LISTENER =
+  (DESCRIPTION_LIST =
+    (DESCRIPTION =
+      (ADDRESS = (PROTOCOL = TCP)(HOST = USAZUAUDDE90001.us.deloitte.com)(PORT = 1521))
+      (ADDRESS = (PROTOCOL = IPC)(KEY = EXTPROC1521))
+    )
+  )
+
+SID_LIST_LISTENER =
+   (SID_LIST =
+     (SID_DESC =
+        (SID_NAME = PLSExtProc)
+        (ORACLE_HOME = /u01/app/oracle/product/19.0/db_1)
+        (PROGRAM = extproc)
+     )
+     (SID_DESC =
+        (SID_NAME = CLSQ)
+        (ORACLE_HOME = /u01/app/oracle/product/19.0/db_1)
+        (GLOBAL_DBNAME=CLSQ.US.DELOITTE.COM)
+     )
+===============
+TOOLSA.US.DELOITTE.COM =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = USAWSTAXST00586.us.deloitte.com)(PORT = 1521))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = TOOLSA.us.deloitte.com)
+    )
+  )
+
+CLSQ.US.DELOITTE.COM =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = USAZUAUDDE90001.us.deloitte.com)(PORT = 1521))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = CLSQ.US.DELOITTE.COM)
+    )
+  )
+
+
+tns and listener need to create ---completed
+need to copy schematab file   ----completed
+need to copy files in oracalbase/bin  ----completed
+ 
+.bash profile copy from other server and run . .bashprofile  chomod 722 .bashprofile       ---- completed
+ 
+pacting and opatch version                                                                 ---- completed
+auto startup after reboot   ---completed      
+backup set up   completed
+catalog dbs  -- completed
+scripts the odit log travs in crontab  --- completed
+oem adding  
+rman target sys/M4tgQ1yh catalog RCATDEIHRP1/k3g7_R6V@TOOLSA
+
+upgrade catalog;
+
+export ORACLE_BASE=/u01/app/oracle
+export ORACLE_HOME=/u01/app/oracle/product/19.0/db_1
+export PATH=$ORACLE_HOME/bin:$PATH
+ i have CREATED SMALLFILE TABLESPACE
+ i have created a user in catalog db 
+ and  in my actual database i create catalog;
+ then i REGISTER DATABASE;
+ and RMAN> REPORT SCHEMA; now i want to drop this schema what are the exact steps?
+
+find *.trc -mtime +2 -exec rm {} \;
+find *.trm -mtime +2 -exec rm {} \;
+find /u01/app/oracle/admin/PTST1/adump -type f -mtime +2 -name '*.aud' -exec rm -f {} \;
+
+
+
+TOOLSA:RCATPTLMIRP:k3g7_R6V:CLSP_RMANCAT
+
+Retrieve RMAN CATALOG Credentials for Oracle_SID from schematab "Example DETOOLS2:RMANDEORGS1:k3g7_R6V:DEORGS1_RMANCAT"
+
+
+SELECT TABLESPACE_NAME
+FROM DBA_TABLESPACES
+WHERE TABLESPACE_NAME ='RCAT_CLSS';
+
+SELECT USERNAME
+FROM DBA_USERS
+WHERE USERNAME = 'RCATPTLMIRP';
+===========================================================================================================================================================
+How to enable flashback and gurantee restore point
+STEPS TO ENABLE FLASHBACK..AND GUARANTEE RESTOREPOINT 
+SQL> alter system set db_recovery_file_dest_size=50G scope=both; 
+System altered.
+ 
+SQL> alter system set db_recovery_file_dest='/oraexp/fra' scope=both;
+ 
+System altered.
+ 
+***update the retention per request, we usually make it for 48 hours i.e 2880***
+ 
+SQL> show parameter db_flashback_retention;
+NAME                                TYPE        VALUE
+------------------------------------ ----------- ------------------------------
+db_flashback_retention_target       integer     1440
+
+Take archive backup.
+We also verify last L0, L1 backups if those were successful and then execute the archive backup once
+
+ RUN
+{
+allocate channel ch1 type disk format '/efs-ges-backup-east1a/ges-prod/usawstax05370/GESAPPR1/ARCHIVELOGS/al_%t_%s_p%p';
+sql 'alter system archive log current';
+sql 'alter database backup controlfile to trace';
+backup archivelog all delete all input;
+RELEASE channel ch1;
+}
+
+exit;
+
+alter database flashback on;
+ 
+Database altered.
+ 
+***capture and save the current_scn and sysdate for flashback(if needed)***
+Below are the sample o/p
+SQL> select current_scn from v$database;
+ 
+CURRENT_SCN
+-----------
+ 129432124
+ 
+SQL> select to_char(sysdate,'DD MM YYYY HH24:MI:SS') from dual;
+ 
+TO_CHAR(SYSDATE,'DD
+-------------------
+03 04 2020 08:48:13
+ 
+ ======================================================
+SELECT flashback_on FROM v$database;
+ 
+
+To ensure we can roll back if needed, create a guaranteed restore point:  
+ 
+CREATE RESTORE POINT Before_deployment GUARANTEE FLASHBACK DATABASE;
+ 
+This ensures Oracle keeps all necessary logs.  
+ 
+ 
+7. Confirm the Restore Point Exists  
+ 
+Verify that the restore point was successfully created:  
+ 
+SELECT NAME, SCN, TIME, GUARANTEE_FLASHBACK_DATABASE
+FROM V$RESTORE_POINT;
+-----------------------------#############################
+STEPS FOR FLASHBACK ENABLE IN STANDBY DB 
+
+SQL> alter system set db_recovery_file_dest_size=50G scope=both;
+ 
+System altered.
+ 
+SQL> alter system set db_recovery_file_dest='/oraexp/fra' scope=both;
+ 
+System altered.
+ 
+***update the retention per request, we usually make it for 48 hours i.e 2880***
+ 
+SQL> show parameter db_flashback_retention;
+NAME                                TYPE        VALUE
+------------------------------------ ----------- ------------------------------
+
+db_flashback_retention_target       integer     1440
+
+SQL>ALTER DATABASE RECOVER MANAGED STANDBY DATABASE CANCEL;
+
+SQL> alter database flashback on;
+
+***capture and save the current_scn and sysdate for flashback(if needed)***
+Below are the sample o/p
+SQL> select current_scn from v$database;
+ 
+CURRENT_SCN
+-----------
+ 129432124
+ 
+SQL> select to_char(sysdate,'DD MM YYYY HH24:MI:SS') from dual;
+ 
+TO_CHAR(SYSDATE,'DD
+-------------------
+03 04 2020 08:48:13
+SQL>ALTER DATABASE RECOVER MANAGED STANDBY DATABASE DISCONNECT FROM SESSION;
+ 
+We also verify last L0, L1 backups if those were successful and then execute the archive backup once
+ ======================================================
+ 
+SELECT flashback_on FROM v$database;
+
+To ensure we can roll back if needed, create a guaranteed restore point:  
+ 
+CREATE RESTORE POINT Before_deployment GUARANTEE FLASHBACK DATABASE;
+ 
+This ensures Oracle keeps all necessary logs.  
+  
+7. Confirm the Restore Point Exists  
+ 
+Verify that the restore point was successfully created:  
+==================================================================================
+ALTER DATABASE FLASHBACK OFF;
+
+DROP RESTORE POINT Before_deployment;
+============================================================================================================================================================
+dblink related..
+
+DPR0027320
+
+Please perform password reset on below databases ass part of annual password reset activity 
+
+US
+Servers:usawstax05370.us.deloitte.com
+Service:ORGPROD1.US.DELOITTE.COM
+Schema/User:Organizer,GODATA
+
+update latest password in below DB link 
+
+Server:EUAWSTAX00009.us.deloitte.com
+Service:DEORGP1.US.DELOITTE.COM
+
+DB LInk:ORGANIZER_ORGMOVE_EU2US.DEDHC.COM
+----------------------------------
+
+ALTER USER GODATA IDENTIFIED BY "m%~j095cd%hyz@Z";
+ALTER USER ORGANIZER IDENTIFIED BY "m%~j095cd%hyz@Z";
+
+DROP DATABASE LINK ORGANIZER_ORGMOVE_EU2US.DEDHC.COM;
+
+CREATE DATABASE LINK ORGANIZER_ORGMOVE_EU2US.DEDHC.COM
+CONNECT TO Organizer IDENTIFIED BY "m%~j095cd%hyz@Z"
+USING 'DEORGP1.US.DELOITTE.COM';
+
+CREATE DATABASE LINK ORGANIZER_ORGMOVE_EU2US.DEDHC.COM
+CONNECT TO GODATA IDENTIFIED BY "'m%~j095cd%hyzZ"
+USING 'DEORGP1.US.DELOITTE.COM';
+
+
+SELECT db_link, username, host
+FROM all_db_links
+WHERE db_link ='ORGANIZER_ORGMOVE_EU2US.DEDHC.COM';
+
+  ORGPROD1:ORGANIZER:C8RSaXgG6IU_zT:APPUSER
+  ORGPROD1:GODATA:C8RSaXgG6IU_zT:APPUSE
+  
+  
+DROP PUBLIC DATABASE LINK ORGANIZER_ORGMOVE_EU2US.DEDHC.COM;
+
+ORGANIZER_ORGMOVE_EU2US.DEDHC.COM
+GODATA
+DEORGP1.US.DELOITTE.COM
+=======================================================================================================================================================
+oracle updatesPatching completed successfully  on all the GES prod servers 
+Worked on DPR0028148 Refresh ASP3:GAE27 with a copy of ASP3:GAE7 
+Worked on DPR0028085 Refresh ASP3:USER4 with a copy of IHR3:GAE90 2. Run a cleanup 3
+Worked on DPR0028151 Refresh IHR3:GAE29 with a copy of ASP1:GAE22 2. Run a cleanup  
+Worked on DPR0028137 unlock the ASP3:GAE4. shared detials when the account was locked and by whom.
+Worked on DPR0028108u nlock COP1:GAE8 and GAE27 db accounts
+Added  datafiles in PTLP and DEORGS1 databases.
+Worked on backup failure in server usndc87400 ..backup mountpoint was missing remounted back.  
+Worked on backup failure due to port issues with euawstaxbc00022 standby server,   
+we worked with os team and cleared that issue
+Worked on IHR3 catalog upgrade ..  
+Working on webhook integration
+=========================================================================
+steps to handle log gap in dg
+Handling Oracle Data Guard Log Gaps
+Certainly! Here’s a clear, step-by-step guide for handling a large log gap (e.g., 500 log gaps)
+in an Oracle Data Guard standby database, including checks and the process for using an incremental backup if needed.
+
+1. Initial Checks
+
+Before taking any action, perform these checks to diagnose the situation:
+
+    - Check Log Gap:
+On the standby, run:
+```sql
+SELECT THREAD#, MAX(SEQUENCE#) FROM V$ARCHIVED_LOG WHERE APPLIED='YES' GROUP BY THREAD#;
+```
+On the primary, run:
+```sql
+SELECT THREAD#, MAX(SEQUENCE#) FROM V$ARCHIVED_LOG GROUP BY THREAD#;
+```
+Compare the results to confirm the gap.
+
+    - Check Archive Log Shipping:
+On the primary:
+```sql
+ARCHIVE LOG LIST;
+```
+On the standby:
+```sql
+select max(sequence#) from v$archived_log where applied= 'YES';
+```
+
+    - Check Data Guard Status:
+On both primary and standby:
+```sql
+SELECT DEST_ID, STATUS, ERROR FROM V$ARCHIVE_DEST;
+```
+
+    - Check for Missing Archive Logs:
+On the standby:
+```sql
+SELECT SEQUENCE#, APPLIED, STATUS FROM V$ARCHIVED_LOG WHERE APPLIED='NO' ORDER BY SEQUENCE#;
+```
+
+    ---
+
+2. Attempt to Resolve Log Gap
+
+A. Try to Transfer Missing Archive Logs
+
+1. Identify Missing Logs:
+List missing archive logs on the standby.
+
+2. Copy Missing Logs:
+If available, manually copy missing archive logs from primary to standby (using SCP, FTP, etc.).
+
+3. Register Missing Logs:
+On the standby:
+```sql
+ALTER DATABASE REGISTER PHYSICAL LOGFILE '/path/to/archivelog.arc';
+```
+
+4. Start Managed Recovery:
+```sql
+ALTER DATABASE RECOVER MANAGED STANDBY DATABASE USING CURRENT LOGFILE DISCONNECT;
+```
+
+    ---
+
+B. If Logs Are Not Available: Use Incremental Backup
+
+If the gap is too large or missing logs cannot be retrieved, use an incremental backup to resynchronize the standby.
+
+Steps for Incremental Backup Recovery
+
+1. Stop Recovery on Standby:
+```sql
+ALTER DATABASE RECOVER MANAGED STANDBY DATABASE CANCEL;
+```
+
+2. Find the Current SCN on Standby:
+```sql
+SELECT CURRENT_SCN FROM V$DATABASE;
+```
+
+3. Take Incremental Backup from Primary (from Standby's SCN):
+On the primary, as RMAN:
+```rman
+BACKUP INCREMENTAL FROM SCN <standby_current_scn> DATABASE FORMAT '/tmp/incr_standby_%U.bkp';
+```
+
+4. Copy Backup to Standby:
+Use SCP, FTP, or another method to transfer the backup files to the standby server.
+
+5. Catalog the Backup on Standby:
+On the standby, as RMAN:
+```rman
+CATALOG START WITH '/path/to/backup/';
+```
+
+6. Restore Incremental Backup on Standby:
+```rman
+RECOVER DATABASE NOREDO;
+```
+
+7. Copy Latest Control File from Primary to Standby (if needed):
+On the primary:
+```sql
+ALTER DATABASE CREATE STANDBY CONTROLFILE AS '/tmp/standby.ctl';
+```
+Copy this file to the standby and mount the standby database with it.
+
+8. Restart Managed Recovery on Standby:
+```sql
+ALTER DATABASE RECOVER MANAGED STANDBY DATABASE USING CURRENT LOGFILE DISCONNECT;
+```
+
+    ---
+
+3. Post-Recovery Checks
+
+    - Monitor Log Apply Progress:
+```sql
+SELECT SEQUENCE#, APPLIED FROM V$ARCHIVED_LOG ORDER BY SEQUENCE#;
+```
+    - Check Data Guard Status:
+```sql
+SELECT DEST_ID, STATUS, ERROR FROM V$ARCHIVE_DEST;
+```
+    - Verify No Further Gaps Exist.
+
+    ---
+
+4. Summary Table
+
+| Step | Action | Command/Notes |
+|------|--------|---------------|
+| 1 | Check log gap | Compare max SEQUENCE# on primary & standby |
+| 2 | Try to transfer missing logs | Copy/register logs, restart recovery |
+| 3 | If logs unavailable, stop recovery | `ALTER DATABASE RECOVER MANAGED STANDBY DATABASE CANCEL;` |
+| 4 | Find standby SCN | `SELECT CURRENT_SCN FROM V$DATABASE;` |
+| 5 | Take incremental backup on primary | `BACKUP INCREMENTAL FROM SCN ...` |
+| 6 | Copy backup to standby | Use SCP/FTP |
+| 7 | Catalog backup on standby | `CATALOG START WITH ...` |
+| 8 | Restore incremental backup | `RECOVER DATABASE NOREDO;` |
+| 9 | Copy standby control file (if needed) | `ALTER DATABASE CREATE STANDBY CONTROLFILE AS ...` |
+| 10 | Restart managed recovery | `ALTER DATABASE RECOVER MANAGED STANDBY DATABASE ...` |
+
+    ---
+
+5. Tips & Best Practices
+
+    - Always ensure you have sufficient disk space before restoring backups.
+    - Keep regular backups of archive logs for at least the retention period.
+    - Automate archive log shipping and monitoring to avoid large gaps.
+
+    - Document the SCN and sequence numbers before and after the operation.
+====================================================================================================================
+bashprofile script
+###################################################################################
+##
+## .bash_profile
+##
+##  Version 2.17
+##
+##  Purpose: Set Bash Shell environment variables for Oracle user
+##
+##  Note: This file should contain all settings that are common to all Linux environments.
+##        Settings that are unique to a server should be placed in .custom_profile.
+##
+###################################################################################
+## Change History:
+##  Version 2.0  Rvaniman  18-DEC-2005  Created for Deloitte
+##  Version 2.1  Rvaniman  04-AUG-2006  Added AGENT_HOME, LISTENER_HOME, and OMS_HOME
+##                                      sourced from /etc/oratab
+##  Version 2.2  Rvaniman  16-NOV-2006  Added ot and st functions
+##  Version 2.3  Rvaniman  17-NOV-2006  Added $DBA_BIN to PATH for RLS scripts
+##  Version 2.4  Rvaniman  29-MAY-2007  Set LISTENER_HOME to ORACLE_HOME if it isnt in oratab
+##  Version 2.5  Rvaniman  04-JUN-2007  Set TNS_ADMIN to $LISTENER_HOME/network/admin
+##  Version 2.6  Rvaniman  08-JUL-2008  Added functions shortcuts, cl, cm, co, cr, va, ta, removed rmn
+##  Version 2.7  Rvaniman  12-AUG-2008  Added ah, lh and lart functions
+##  Version 2.8  Rvaniman  15-AUG-2008  Added oe function, removed sid function
+##  Version 2.9  Rvaniman  26-NOV-2008  Set DBA_DIAG from /etc/oratab
+##  Version 2.10 Rvaniman  08-SEP-2009  Added set variables based on oracle version
+##  Version 2.11 Rvaniman  09-SEP-2009  Added ALERT_LOG variable
+##  Version 2.12 Rvaniman  23-MAR-2010  Added DIAG_DIR variable for 11g, organized by function,
+##                                      call .custom_profile if exists
+##  Version 2.13 Rvaniman  25-MAR-2010  If db_unique_name not found set to db_name
+##  Version 2.14 Rvaniman  09-MAY-2012  Added set -o vi for AIX keys compatibility
+##  Version 2.15 Rvaniman  16-NOV-2012  Added call to .custom_profile if it exists,
+##                                      variables TSM_ADMIN, LISTENER_LOG and DIAG_DIR
+##  Version 2.16 Rvaniman  05-MAY-2015  Added shortcut cs (change to /u01/app/oracle/scripts)
+##  Version 2.17 Rvaniman  06-MAY-2015  Changed test for LISTENER_VERSION and ORACLE_VERSION to use -gt 10, not = "11"
+###################################################################################
+#
+
+# Get the aliases and functions
+if [ -f ~/.bashrc ]; then
+        . ~/.bashrc
+fi
+
+# User specific environment
+unset USERNAME
+export EDITOR=vim
+set -o vi
+
+# OS dependent variables
+# Note: Any code changes to this block must be duplicated in setenv.ksh
+case $(echo $(uname)|awk '{print toupper($NF)}') in
+        LINUX)  export TSM_ADMIN="/opt/tivoli/tsm/client/oracle/bin64" ;;
+        AIX)    export TSM_ADMIN="/usr/tivoli/tsm/client/oracle/bin64" ;;
+esac
+
+# Oracle environment
+export ORACLE_BASE=/u01/app/oracle
+export NLS_LANG=AMERICAN_AMERICA.WE8ISO8859P1
+export ORACLE_SID=$(grep "^[a-zA-Z]" /etc/oratab|head -n 1|awk -F: '{print $1}')   # First SID in oratab
+export ORACLE_HOME=$(grep "^$ORACLE_SID:" /etc/oratab|awk -F: '{print $2}')        # Get ORACLE_HOME from oratab
+export AGENT_HOME=$(grep -i "^#AGENT_HOME" /etc/oratab|awk -F: '{print $2}')       # Get AGENT_HOME from oratab
+export OMS_HOME=$(grep -i "^#OMS_HOME" /etc/oratab|awk -F: '{print $2}')           # Get OMS_HOME from oratab
+export LISTENER_HOME=$(grep -i "^#LISTENER_HOME" /etc/oratab|awk -F: '{print $2}') # Get LISTENER_HOME from oratab
+if [ -z "${LISTENER_HOME}" ];then
+        export LISTENER_HOME=${ORACLE_HOME}
+fi
+
+# Oracle net variables
+export TNS_ADMIN=$LISTENER_HOME/network/admin
+export OA=$ORACLE_BASE/admin
+export OH=$ORACLE_HOME
+export AH=$AGENT_HOME
+export ORACLE_TERM=hftc
+export CLASSPATH=$ORACLE_HOME/JRE:$ORACLE_HOME/jlib:$ORACLE_HOME/network/jlib:$ORACLE_HOME/rdbms/jlib:$ORACLE_HOME/plsql/jlib
+export PATH=:$ORACLE_HOME/bin:$ORACLE_BASE/scripts/maint:$ORACLE_BASE/bin:$ORACLE_HOME/Apache/perl/bin:$ORACLE_HOME/OPatch:/bin:/usr/bin:/usr/sbin/:/usr/ccs/bin:/usr/bin/X11:/usr/lbin:/usr/local/bin:/etc:/sbin:$PATH:.
+export LIBPATH=$ORACLE_HOME/lib
+export LD_LIBRARY_PATH=$ORACLE_HOME/lib
+export TMPDIR=/oraexp
+export TEMP=/oraexp
+export TIMEOUT=0
+umask 22
+
+# Variables based on listener Oracle Version
+lListenerVersion=$(echo ${LISTENER_HOME}|awk -Fproduct/ '{print $2}'|awk -F/ '{print $1}'|awk -F. '{print $1}')
+if [ ${lListenerVersion} -gt 10 ];then
+        export LISTENER_LOG="${ORACLE_BASE}/diag/tnslsnr/$(hostname)/listener/trace/listener.log"
+else
+        export LISTENER_LOG="${ORACLE_HOME}/network/log/listener.log"
+fi
+unset lListenerVersion
+
+# Variables based on Oracle Version
+# Note: Any code changes to this block must be duplicated in
+#       .profile, .bash_profile, and scripts/common/setenv.ksh
+export ORACLE_VERSION=$(echo ${ORACLE_HOME}|awk -Fproduct/ '{print $2}'|awk -F/ '{print $1}')
+if [ $(echo ${ORACLE_VERSION}|awk -F. '{print $1}') -gt 10 ];then
+        lPFile="${ORACLE_HOME}/dbs/spfile${ORACLE_SID}.ora"
+        if [ -f "${lPFile}" ];then
+                # Pass -a (treat binary file as txt) to grep if Linux. -a is invalid in AIX
+                case $(echo $(uname)|awk '{print toupper($NF)}') in
+                        AIX) lArg="" ;;
+                        LINUX) lArg="a" ;;
+                esac
+                lDiagDest=${ORACLE_BASE}
+                lDbName=$(grep -${lArg}i "*.db_unique_name=" ${lPFile}|awk -F= '{print tolower($2)}'|sed "s/'//g;s/ //g")
+                if [ -z "${lDbName}" ];then
+                        lDbName=$(grep -${lArg}i "*.db_name=" ${lPFile}|awk -F= '{print tolower($2)}'|sed "s/'//g;s/ //g")
+                fi
+                export DIAG_DIR="${lDiagDest}/diag/rdbms/${lDbName}/${ORACLE_SID}"
+                export ALERT_LOG="${DIAG_DIR}/trace/alert_${ORACLE_SID}.log"
+                unset lPFile
+                unset lDiagDest
+                unset lDbName
+                unset lArg
+        fi
+else
+        export DIAG_DIR="${ORACLE_BASE}/admin/${ORACLE_SID}"
+        export ALERT_LOG="${DIAG_DIR}/bdump/alert_${ORACLE_SID}.log"
+fi
+
+# Create functions for command prompt shortcuts
+tmpfile="/tmp/setsid_$$"
+echo "# setsid - functions to set oracle sid">$tmpfile
+echo "shortcuts () {
+        echo ""-------------------------------------------------------------------------""
+        echo ""Shortcut \ Description""
+        echo ""-------------------------------------------------------------------------""
+        echo ""\ \ \ ah \ = \ Set ORACLE_HOME to AGENT_HOME""
+        echo ""\ \ \ lh \ = \ Set ORACLE_HOME to LISTENER_HOME""
+        echo ""\ \ \ cs \ = \ cd to \$ORACLE_BASE/scripts""
+        echo ""\ \ \ cl \ = \ cd to \$ORACLE_BASE/scripts/log""
+        echo ""\ \ \ cm \ = \ cd to \$ORACLE_BASE/scripts/maint""
+        echo ""\ \ \ co \ = \ cd to \$ORACLE_BASE/scripts/common""
+        echo ""\ \ \ cr \ = \ cd to \$ORACLE_BASE/admin/SID/rman""
+        echo ""\ \ \ fp [PROCESS] = Find process, same as ps -ef\|egrep [PROCESS]""
+        echo ""\ \ \ la \ = \ List directory all, same as ls -a""
+        echo ""\ lart \ = \ List directory all reverse by time, same as ls -art""
+        echo ""\ \ \ ll \ = \ List directory list, same as ls -l""
+        echo ""\ \ lrt \ = \ List directory reverse date order, same as ls -lrt""
+        echo ""\ \ \ oe \ = \ List Oracle Environment""
+        echo ""\ \ \ ot \ = \ List oratab file""
+        echo ""\ \ \ rt \ = \ List rmantab file""
+        echo ""\ sdba \ = \ Connect to sqlplus as sysdba""
+        echo ""\ \ \ sp \ = \ Connect to sqlplus using sqlplus.ksh - prompts for sid, schema""
+        echo ""\ \ \ st \ = \ List contents of schematab file""
+        echo ""\ \ \ ta \ = \ tail bottom 100 lines of alert log""
+        echo ""\ \ \ va \ = \ vi alert log""
+        echo ""[SID] \ = \ Set ORACLE_SID and environment to [SID]""
+        echo ""-------------------------------------------------------------------------""
+        }">>$tmpfile
+echo "sdba () {
+        sqlplus \"/as sysdba\"
+        }">>$tmpfile
+echo "sp() {
+       sqlplus.ksh \"\$1\" \"\$2\"
+        }">>$tmpfile
+echo "lart () {
+        if [ -z \"\$1\" ];then
+                ls -lart
+        else
+                ls -lart \"\$1\"
+        fi
+        }">>$tmpfile
+echo "lrt () {
+        if [ -z \"\$1\" ];then
+                ls -lrt
+        else
+                ls -lrt \"\$1\"
+        fi
+        }">>$tmpfile
+echo "fp () {
+        if [ -z \"\$1\" ];then
+                echo "Usage: fp [search process]"
+        else
+                ps -ef|grep \$1|grep -v grep
+        fi
+        }">>$tmpfile
+echo "oe () {
+        echo "-----------------------"
+        echo "Oracle Environment"
+        echo "-----------------------"
+        echo "ORACLE_SID=\$ORACLE_SID"
+        echo "ORACLE_VERSION=\$ORACLE_VERSION"
+        echo "ORACLE_HOME=\$ORACLE_HOME"
+        echo "AGENT_HOME=\$AGENT_HOME"
+        echo "LISTENER_HOME=\$LISTENER_HOME"
+        echo "TNS_ADMIN=\$TNS_ADMIN"
+        echo "TSM_ADMIN=\$TSM_ADMIN"
+        echo "NLS_LANG=\$NLS_LANG"
+        echo "OMS_HOME=\$OMS_HOME"
+        echo "LIBPATH=\$LIBPATH"
+        echo "LD_LIBRARYPATH=\$LD_LIBRARY_PATH"
+        echo "ALERT_LOG=\$ALERT_LOG"
+        echo "DIAG_DIR=\$DIAG_DIR"
+        echo
+        }">>$tmpfile
+echo "ot () {
+        echo "etc/oratab"
+        echo "-----------------------"
+        cat /etc/oratab | grep -v '# '
+        }">>$tmpfile
+echo "st () {
+        echo "$ORACLE_BASE/scripts/common/schematab"
+        echo "-----------------------------------"
+        cat $ORACLE_BASE/scripts/common/schematab | grep ^[a-zA-Z] | sort
+        }">>$tmpfile
+echo "cs () {
+        cd $ORACLE_BASE/scripts
+        pwd
+        }">>$tmpfile
+echo "cl () {
+        cd $ORACLE_BASE/scripts/log
+        pwd
+        }">>$tmpfile
+echo "cm () {
+        cd $ORACLE_BASE/scripts/maint
+        pwd
+        }">>$tmpfile
+echo "co () {
+        cd $ORACLE_BASE/scripts/common
+        pwd
+        }">>$tmpfile
+echo "cr () {
+        if [ -z \"\$1\" ];then
+                cd ~/admin/\$ORACLE_SID/rman
+        else
+                cd ~/admin/\$1/rman
+        fi
+        pwd
+        }">>$tmpfile
+echo "rt () {
+        echo "$ORACLE_BASE/scripts/common/rmantab"
+        echo "-----------------------------------"
+        cat $ORACLE_BASE/scripts/common/rmantab | grep ^[a-zA-Z] | sort
+        }">>$tmpfile
+echo "va () {
+        vi \$ALERT_LOG
+        }">>$tmpfile
+echo "ta () {
+        tail -n 100 -f \$ALERT_LOG
+        }">>$tmpfile
+echo "ah () {
+        echo "-----------------------------------"
+        . /u01/app/oracle/scripts/common/change_oh.ksh "\$ORACLE_HOME" "\$AGENT_HOME"
+        echo "Type $ORACLE_SID at prompt to set back to ORACLE_HOME"
+        echo "-----------------------------------"
+        }">>$tmpfile
+echo "lh () {
+        echo "-----------------------------------"
+        . /u01/app/oracle/scripts/common/change_oh.ksh "\$ORACLE_HOME" "\$LISTENER_HOME"
+        echo "Type $ORACLE_SID at prompt to set back to ORACLE_HOME"
+        echo "-----------------------------------"
+        }">>$tmpfile
+for sid in $(awk -F: '{print $1}' /etc/oratab|grep "^[a-zA-Z]")
+do
+        echo "$sid () {
+                export ORACLE_SID=$sid
+                export PS1=\"[`hostname -s` `whoami` "$sid"]> \"
+                . /u01/app/oracle/scripts/common/setenv.ksh
+        }">>$tmpfile
+done
+. $tmpfile
+rm $tmpfile
+
+# Call .custom_profile if it exists
+if [ -r "${HOME}/.custom_profile" ];then
+        . ${HOME}/.custom_profile
+fi
+export PS1="[`hostname -s` `whoami` "$ORACLE_SID"]> "
+#. /opt/ansible/ansible/hacking/env-setup -q
+===========================================================================================================================
+dataguard switchover steps..
+pre requisites	
+	all three nodes are in sync - check
+	dgmgr - enabled should be in all the databases
+	need the databases list to be failed over
+ 
+------take the screen shot for database in sync
+ 
+bilal  – GESAPPR1
+M4tgQ1yh
+
+, COS1, COS2, BT,ASP2
+
+Venkat – ORGPROD1, COP1, COP2, DEIHR1 ,IHR1 ---servers 05370,05395,00011eu
+ 
+mahesh – DEORG1, ASP3, IHR2, IHR3,PTLP, ASP1,
+ 
+dgmgrl /
+ 
+check status and configuration
+ 
+----st to check sys passowrd 
+dgmgrl /
+show configuration;
+----take the scree shots before and after failover 
+dgmgrl /
+Connect SYS/M4tgQ1yh@ASP2_E1AP
+Show configuration;
+Switchover to 'ASP2_W1AS';  
+ 
+---screen shot failover havppen
+ 
+check SIDPrimary is in mount mode and in sync or not-------- select open_mode from v$database;
+alter system switch logfile;
+ 
+Check case sensitive parameter in DB is TRUE
+in sdba :  show parameter sensitive
+ 
+show parameter service; ---for conection the database to tell the users 
+===================================================================================================
+check list for new server..
+-----tns and listener need to create ---
+
+need to copy schematab file   ----
+
+need to copy files in oracalbase/bin  ----
+
+.bash profile copy from other server and run . .bashprofile  chomod 722 .bashprofile       ---- 
+
+pacting and opatch version                                                                 ---- 
+
+auto startup after reboot   ---
+
+backup set up   
+
+catalog dbs  -- completed
+
+scripts the odit log travs in crontab  --- 
+ 
+check all the steps 
+=============================================================================================================================
+table refresh using nohup and parfile
+Hi Team,
+
+We need your help to refresh the data for the specified tables from one of the stage database schema to the schema in QA.
+
+Source – SUP1USER12 (USAWSTAXST00423.us.deloitte.com) – Stage
+Destination – GLTSTUSER10 (USAWSTAXQA00028.us.deloitte.com) – QA
+
+PFA the excel file for the list of tables.
+
+
+mkdir table_INC9446687
+
+
+CREATE  DIRECTORY INC944668 AS '/oraexp/table_INC9446687';
+Creat export par file
+
+directory=INC944668
+dumpfile=export1table_%U.dmp
+logfile=export.log
+tables=GAE12.CNTRY_WORKDAY
+parallel=1
+nohup expdp \"/as sysdba\" parfile=exp.par &
+=======================
+scp /oraexp/datapump/refresh_tables.dmp oracle@xyz.us.deloitte.com:/oraexp/datapump/
+
+
+==============
+
+imp par file
+directory=INC944668
+dumpfile=export1table_%U.dmp
+logfile=export.log
+tables=GAE12.CNTRY_WORKDAY
+parallel=1
+table_exists_action=replace
+remap_schema=GAE12:GAE10
+
+nohup imppdp \"/as sysdba\" parfile=imp.par &
+
+[1]+ 1945379 Running 
+job -l
+
+
+
+
+
+Sep 17, 2025 10:30 AM
+
+
+. . exported "GAE12"."GA_SERVICES_BT_AUDIT"              2.406 GB  427725 rows
+. . exported "GAE12"."TAX_YEAR"                            558 KB   10255 rows
+. . exported "GAE12"."TAX_TREATY"                        278.6 KB    3668 rows
+. . exported "GAE12"."TAX_THRESHOLD_STATE_PROVINCE"      25.19 KB     197 rows
+. . exported "GAE12"."TAX_RATE_STATE_PROVINCE"           18.75 KB     166 rows
+. . exported "GAE12"."TAX_THRESHOLD_CNTRY"               16.02 KB     107 rows
+. . exported "GAE12"."TAX_AGREEMENT_STATE_PROVINCE"      10.66 KB      40 rows
+. . exported "GAE12"."TAX_STATE_PROVINCE"                10.53 KB      51 rows
+. . exported "GAE12"."TAX_TREATY_COMP_THRESHOLD"         10.36 KB      52 rows
+. . exported "GAE12"."TAX_THRESHOLD_ST_PROV_DAY_TYPE"    8.734 KB      23 rows
+. . exported "GAE12"."TAX_THRESHOLD_CNTRY_DAY_TYPE"      8.734 KB      63 rows
+. . exported "GAE12"."TAX_TRAVEL_DAY_EXCLUSIONS"         8.437 KB       2 rows
+. . exported "GAE12"."DAY_TYPE_CALENDAR_MAPPING"         8.132 KB      21 rows
+. . exported "GAE12"."BT_SUPPORTED_CNTRY"                8.203 KB     104 rows
+. . exported "GAE12"."BT_SUPPORTED_ST_PROV"              7.562 KB      51 rows
+. . exported "GAE12"."DAY_TYPE"                          7.390 KB       7 rows
+. . exported "GAE12"."TAX_THRESHOLD_PERIOD"              6.632 KB       6 rows
+. . exported "GAE12"."TAX_RATE_TYPE"                     6.546 KB       2 rows
+. . exported "GAE12"."TAX_THRESHOLD_TYPE"                6.484 KB       3 rows
+. . exported "GAE12"."TAX_THRESHOLD_CATEGORY"            6.484 KB       5 rows
+. . exported "GAE12"."TAX_TREATY_CONDITIONS"             6.460 KB       3 rows
+. . exported "GAE12"."TAX_TREATY_DAY_TYPE"                   0 KB       0 rows
+--------------------------------------------------------------------========================================================...................................
+rman backup script...
+
+/mount/qausclsstrv2use2db/qafs
+==================================================
+
+[usazuaud90011 oracls CLSS]> cat rman_backup.sh
+#!/bin/bash
+##
+##############################################################################################################
+##
+## Name: rman_backup.sh
+##
+## Version: 1.3
+##
+##
+## Purpose: Performs a RMAN Level 0, Level 1, Archive Log Backup for $DBNAME in /etc/oratab
+##
+## Usage: rman_backup.sh ORACLE_SID BACKUP_TYPE
+##
+## Platform: LINUX/AIX
+##
+## This script has been tested with Oracle 19c
+##
+##
+##############################################################################################################
+## Change History
+## Version 1.0  Maimasiko  27-OCT-2023  Created to Take RMAN Backup of $DBNAME in /etc/oratab
+## Version 1.1  Maimasiko  06-DEC-2023  Crosscheck & Delete Obsolete outside of RUN command, RMAN Script Ignores RMAN-00571|RMAN-00569|RMAN-03002|RMAN-06091
+## Version 1.2  Maimasiko  31-OCT-2024  ArchiveLogs Filesystem location Use% must exceed 20% Threshold for ARC Backups $PCT_USED
+## Version 1.3  Maimasiko  04-NOV-2024  Mail Command will specify -S flag depending on LINUX or AIX Platform using $UNAME
+##
+##############################################################################################################
+
+
+#######################################################
+# Set environment
+#######################################################
+
+date
+COUNT_PARA=$#
+export DATE=`date +%Y%m%d_%H%M`
+export ORATAB=/etc/oratab
+export ORACLE_BASE=/u01/app/oracle
+export HOSTNAME=`hostname`
+export DBNAME=$1
+export BKUP_TYPE=$2
+export TMPDIR=/tmp
+export SCRIPT_LOC=/u01/app/oracle/dba_scripts/rman_backups
+export BACKUP_MNT=/mount/stgusclsstrv2use2db/stgfs
+
+
+echo "DATE= "$DATE
+echo "ORATAB= "$ORATAB
+echo "ORACLE_BASE= "$ORACLE_BASE
+echo "HOSTNAME= "$HOSTNAME
+echo "TMPDIR= "$TMPDIR
+echo "SCRIPT_LOC= "$SCRIPT_LOC
+echo "BACKUP_MNT= "$BACKUP_MNT
+echo ' '
+
+
+# Oracle SID and Backup type inputs required
+
+USAGE_EXAMPLE="Example:"$(basename "$0")
+if [ ${COUNT_PARA} -lt 2 ] ; then   # Check for parameters
+        echo "error: ORACLE_SID and BACKUP_TYPE is required."
+        echo $USAGE_EXAMPLE" ORA19 backup_type{L0-Level0,L1-Level1,ARC-ArchiveLogs} "
+        exit 9
+fi
+
+
+# Check if the database exist in /etc/oratab
+
+DB_EXIST=`grep $DBNAME $ORATAB`
+if [[ ! -n ${DB_EXIST} ]] ; then
+        echo "error: "${DBNAME}" not defined in /etc/oratab "
+        exit 9
+fi
+
+
+export ORACLE_HOME=`echo ${DB_EXIST} | awk -F: '{print $2}' -`
+export ORACLE_SID=`echo ${DB_EXIST} | awk -F: '{print $1}' -`
+export PATH=$ORACLE_HOME/bin:$PATH
+
+
+echo "ORACLE_HOME= "$ORACLE_HOME
+echo "ORACLE_SID= "$ORACLE_SID
+echo "PATH= "$PATH
+echo ' '
+
+
+# Check if backup directory and backup log_file directory exist
+
+LOG_FILE_DIR=$SCRIPT_LOC/rman_logs
+if [ ! -d ${BACKUP_MNT} ] ; then
+        echo ' '
+        echo "error: unable to access backup directory: "${BACKUP_MNT}
+        exit 9
+fi
+if [ ! -d ${LOG_FILE_DIR} ] ; then
+        echo ' '
+        echo "error: unable to access backup log_file directory: "${LOG_FILE_DIR}
+        exit 9
+fi
+
+
+#######################################################
+# Generate RMAN Command Script
+#######################################################
+
+# Generate RMAN Command Script based on $BKUP_TYPE option "{L0-Level0,L1-Level1,ARC-ArchiveLogs}"
+
+case "$BKUP_TYPE" in
+   "L1")
+       CMD_MSG="Level1(Incremental_Diff) backup of ${ORACLE_SID} database"
+       Subject="SUCCESS [Incremental_Level_1_Diff_Backup_${HOSTNAME}_${ORACLE_SID}]"
+       ErrorSubject="FAILED [Incremental_Level_1_Diff_Backup_${HOSTNAME}_${ORACLE_SID}]"
+       export CMD_SCRIPT=${LOG_FILE_DIR}/rman_cmd_script_L1_${ORACLE_SID}_${DATE}.rman
+       export LOG_FILE=${LOG_FILE_DIR}/rman_backup_L1_${ORACLE_SID}_${DATE}.log
+       export BackupFileDirectory=$BACKUP_MNT/${ORACLE_SID}/INCREMENTAL_L1
+       echo "
+       RUN
+        {
+        allocate channel ch1 type disk;
+        allocate channel ch2 type disk;
+        allocate channel ch3 type disk;
+        allocate channel ch4 type disk;
+        allocate channel ch5 type disk;
+        allocate channel ch6 type disk;
+        allocate channel ch7 type disk;
+        allocate channel ch8 type disk;
+        SQL 'alter system archive log current';
+        BACKUP INCREMENTAL LEVEL 1 TAG 'L1_diff_database_Bckp'
+        FORMAT '$BackupFileDirectory/db_%t_%s_p%p'
+        DATABASE
+        CURRENT CONTROLFILE TAG 'cf1'
+        FORMAT '$BackupFileDirectory/cf_%t_%s_p%p'
+        SPFILE TAG 'sp1'
+        FORMAT '$BackupFileDirectory/sp_%t_%s_p%p'
+        PLUS ARCHIVELOG TAG 'ARC_LOG_Bckp'
+        delete input
+        FORMAT '$BackupFileDirectory/al_%t_%s_p%p';
+        RELEASE channel ch1;
+        RELEASE channel ch2;
+        RELEASE channel ch3;
+        RELEASE channel ch4;
+        RELEASE channel ch5;
+        RELEASE channel ch6;
+        RELEASE channel ch7;
+        RELEASE channel ch8;
+        }
+       crosscheck backup;
+       delete noprompt obsolete until time 'SYSDATE - 28';
+       exit;" > $CMD_SCRIPT
+   ;;
+   "L0")
+       CMD_MSG="Level0(Full) backup of ${ORACLE_SID} database"
+       Subject="SUCCESS [Level0_Backup_${HOSTNAME}_${ORACLE_SID}]"
+       ErrorSubject="FAILED [Level0_Backup_${HOSTNAME}_${ORACLE_SID}]"
+       export CMD_SCRIPT=${LOG_FILE_DIR}/rman_cmd_script_L0_${ORACLE_SID}_${DATE}.rman
+       export LOG_FILE=${LOG_FILE_DIR}/rman_backup_L0_${ORACLE_SID}_${DATE}.log
+       export BackupFileDirectory=$BACKUP_MNT/${ORACLE_SID}/INCREMENTAL_L0
+       echo "
+       RUN
+        {
+        allocate channel ch1 type disk;
+        allocate channel ch2 type disk;
+        allocate channel ch3 type disk;
+        allocate channel ch4 type disk;
+        allocate channel ch5 type disk;
+        allocate channel ch6 type disk;
+        allocate channel ch7 type disk;
+        allocate channel ch8 type disk;
+        SQL 'alter system archive log current';
+        BACKUP INCREMENTAL LEVEL 0 TAG 'L0_database_Bckp'
+        FORMAT '$BackupFileDirectory/db_%t_%s_p%p'
+        DATABASE
+        CURRENT CONTROLFILE TAG 'cf1'
+        FORMAT '$BackupFileDirectory/cf_%t_%s_p%p'
+        SPFILE TAG 'sp1'
+        FORMAT '$BackupFileDirectory/sp_%t_%s_p%p'
+        PLUS ARCHIVELOG TAG 'ARC_LOG_Bckp'
+        delete input
+        FORMAT '$BackupFileDirectory/al_%t_%s_p%p';
+        RELEASE channel ch1;
+        RELEASE channel ch2;
+        RELEASE channel ch3;
+        RELEASE channel ch4;
+        RELEASE channel ch5;
+        RELEASE channel ch6;
+        RELEASE channel ch7;
+        RELEASE channel ch8;
+        }
+       crosscheck backup;
+       delete noprompt obsolete until time 'SYSDATE - 28';
+       exit;" > $CMD_SCRIPT
+   ;;
+   "ARC")
+   export ARC_FS_NAME=/archive/${ORACLE_SID}
+   export PCT_USED=$(df -Pk $ARC_FS_NAME|grep -iv ^Filesystem|awk '{print $5}'|sed 's/\%//g')
+   if [ $PCT_USED -gt 5 ]; then
+
+       CMD_MSG="Archive backup of ${ORACLE_SID} database"
+       Subject="SUCCESS [Archive_Backup_${HOSTNAME}_${ORACLE_SID}]"
+       ErrorSubject="FAILED [Archive_Backup_${HOSTNAME}_${ORACLE_SID}]"
+       export CMD_SCRIPT=${LOG_FILE_DIR}/rman_cmd_script_ARC_${ORACLE_SID}_${DATE}.rman
+       export LOG_FILE=${LOG_FILE_DIR}/rman_backup_ARC_${ORACLE_SID}_${DATE}.log
+       export BackupFileDirectory=$BACKUP_MNT/${ORACLE_SID}/ARCHIVELOGS
+       echo "
+       RUN
+        {
+        allocate channel ch1 type disk;
+        allocate channel ch2 type disk;
+        allocate channel ch3 type disk;
+        allocate channel ch4 type disk;
+        sql 'alter system archive log current';
+        sql 'alter database backup controlfile to trace';
+        BACKUP archivelog all TAG 'ARC_LOG_Bckp'
+        delete all input
+        FORMAT '$BackupFileDirectory/al_%t_%s_p%p'
+        CURRENT CONTROLFILE TAG 'cf1'
+        FORMAT '$BackupFileDirectory/cf_%t_%s_p%p'
+        SPFILE TAG 'sp1'
+        FORMAT '$BackupFileDirectory/sp_%t_%s_p%p';
+        RELEASE channel ch1;
+        RELEASE channel ch2;
+        RELEASE channel ch3;
+        RELEASE channel ch4;
+        }
+       exit;" > $CMD_SCRIPT
+
+   else
+      echo $ARC_FS_NAME" is less than 5 percent does not exceed Threshold"
+      exit 9
+
+   fi
+
+   ;;
+    *)
+      echo "error: Invalid Backup Type (L0-Level0,L1-Level1,ARC-ArchiveLogs) "$BKUP_TYPE
+      exit 9
+      ;;
+esac
+
+
+# Echo RMAN Command Script variables
+
+MailList="USTIDatabaseServicesOracle@deloitte.com"
+#MailList="maimasiko@deloitte.com"
+CMD_MSG="Level0(Full) backup of ${ORACLE_SID} database"
+Subject="SUCCESS [Level0_backup_usazuaud90011_${ORACLE_SID}]"
+ErrorSubject="FAILED [Level0_backup_usazuaud90011_${ORACLE_SID}]"
+
+
+echo "CMD_SCRIPT= "$CMD_SCRIPT
+echo "LOG_FILE= "$LOG_FILE
+echo ' '
+
+
+
+################################################################################################################################
+# Retrieve RMAN CATALOG Credentials for Oracle_SID from schematab "Example DETOOLS2:RMANDEORGS1:k3g7_R6V:DEORGS1_RMANCAT"
+################################################################################################################################
+
+RMAN_LINE=`cat $ORACLE_BASE/scripts/common/schematab | grep ${ORACLE_SID}_RMANCAT`
+RMAN_SID=`echo ${RMAN_LINE} | awk -F: '{print $1}' -`
+RMAN_USERNAME=`echo ${RMAN_LINE} | awk -F: '{print $2}' -`
+RMAN_PWD=`echo ${RMAN_LINE} | awk -F: '{print $3}' -`
+RMAN_TYPE=`echo ${RMAN_LINE} | awk -F: '{print $4}' -`
+echo "Entire Line is "$RMAN_LINE
+echo "RMAN_SID= "$RMAN_SID
+echo "RMAN_USERNAME= "$RMAN_USERNAME
+echo "RMAN_PWD "$RMAN_PWD
+echo "RMAN_TYPE "$RMAN_TYPE
+echo ' '
+
+
+# If RMAN CATALOG Credentials for Oracle_SID do not exist in schematab $RMAN_CRED is null
+
+if [[ ! -n ${RMAN_LINE} ]] ; then
+        RMAN_CRED=`echo ''`
+
+else
+        RMAN_CRED=`echo " catalog " ${RMAN_USERNAME}/${RMAN_PWD}@${RMAN_SID}`
+
+fi
+
+echo "RMAN_CRED= "$RMAN_CRED
+echo ' '
+
+
+
+#######################################################
+# Take RMAN Backup for Oracle_SID L0,L1,ARC
+# Email LOG_FILE to USTIDatabaseServicesOracle@deloitte.com
+#######################################################
+
+export UNAME=`uname -a | awk -F' ' '{print $1}'`
+export NLS_DATE_FORMAT='yyyy-mm-dd hh24:mi:ss'
+
+echo "UNAME= "$UNAME
+echo "NLS_DATE_FORMAT= "$NLS_DATE_FORMAT
+echo ' '
+
+echo "starting "${CMD_MSG} | tee $LOG_FILE
+rman target / ${RMAN_CRED} cmdfile=${CMD_SCRIPT} log=${LOG_FILE} APPEND
+echo "ending "${CMD_MSG} | tee -a $LOG_FILE
+
+
+# Email $LOG_FILE once backup is complete
+
+if [ $UNAME = "Linux" ]; then
+
+  if cat $LOG_FILE|egrep "ORA-|RMAN-";  then
+       mail -S smtp="smtp.us.deloitte.com" -s "${ErrorSubject}" ${MailList} < $LOG_FILE
+
+  else
+       mail -S smtp="smtp.us.deloitte.com" -s "${Subject}" ${MailList} < $LOG_FILE
+
+  fi
+
+else
+
+  if cat $LOG_FILE|egrep "ORA-|RMAN-"|egrep -v "RMAN-00571|RMAN-00569|RMAN-03002|RMAN-06091";  then
+        mail -s "${ErrorSubject}" "${MailList}" < $LOG_FILE
+
+  else
+        mail -s "${Subject}" "${MailList}" < $LOG_FILE
+
+  fi
+
+fi
+
+date
+echo "sending email to "${MailList}
+
+rm $LOG_FILE
+
+#######################################################
+# Find and delete 15 days old rman_logs & script_logs
+#######################################################
+
+find /u01/app/oracle/dba_scripts/rman_backups/rman_logs  -name "rman_script*.out" -mtime +28  -print | xargs rm -rf {} \;
+find /u01/app/oracle/dba_scripts/rman_backups/rman_logs  -name "rman_backup*.log" -mtime +28  -print | xargs rm -rf {} \;
+
+rm $CMD_SCRIPT
+
+exit
+===============================================================================================================================================
+
+
+
+
+
+
