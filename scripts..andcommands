@@ -7328,16 +7328,122 @@ from dba_objects
 where status='INVALID' 
 
 order by owner, object_type; 
-
- 
-
- 
-
 @$ORACLE_HOME/rdbms/admin/utlrp.sql 
-
- 
-
 Run @utlrp.sql 
+
+==========================================================================================
+Remove 12c scripts...
+12c removing steps 
+
+ps -ef|grep pmon
+ 
+ps -ef|grep tns
+ 
+cat /etc/oratab
+
+
+check the oe  
+
+
+ls -lrt
+ 
+1003  cd product
+ 
+1004  ls -lrt
+ 
+1005  cd 12.2.0.1
+ 
+1006  ls -lrt
+ 
+1007  cd db_1
+ 
+1008  ls -lrt
+ 
+1009  cd deinstall
+ 
+1010  ls -lrt
+ 
+1011  pwd
+ 
+1012  ./deinstall
+ 
+1013  history
+
+
+cd /u01/app/oracle/product/Oracle_version/db_1
+ 
+cd deinstall
+ 
+./deinstall
+
+Always cross check which home you're deinstalling
+ 
+ 
+ 
+check data gaurd check steps if data gaurd in 12.
+
+show parameter dg
+
+ALTER SYSTEM SET DG_BROKER_START=FALSE;
+
+alter system set dg_broker_config_file1='/u01/app/oracle/product/19.0/db_1/dbs/dr1GESAPPR1_W1AS.dat';
+
+alter system set dg_broker_config_file2='/u01/app/oracle/product/19.0/db_1/dbs/dr2GESAPPR1_W1AS.dat';
+
+
+ALTER SYSTEM SET DG_BROKER_START=TRUE;
+
+dgmgrl /
+
+show configuration; 
+
+create configutauon----
+
+CREATE CONFIGURATION GESAPPR1_DG AS PRIMARY DATABASE IS "GESAPPR1_E1AP" CONNECT IDENTIFIER IS "GESAPPR1_E1AP";
+
+ADD DATABASE 'GESAPPR1_E1BS' AS CONNECT IDENTIFIER IS 'GESAPPR1_E1BS';
+
+ADD DATABASE 'GESAPPR1_W1AS' AS CONNECT IDENTIFIER IS 'GESAPPR1_W1AS';
+
+enable configuration ;
+
+ta
+
+sdba 
+
+alter system switch logfile;
+The 12c software in this server is not removed yet
+[usadc8710 oraoem OMP]> ll
+total 0
+drwxr-xr-x    3 oraoem   oinstall        256 Aug 19 2021  12.1.0.2
+drwxr-xr-x    3 oraoem   oinstall        256 Dec 15 2020  13.4.0
+drwxr-xr-x    3 oraoem   oinstall        256 Dec 03 2020  19.0
+
+ushdc8552 oradba TOOLSB]> ll
+total 0
+drwxr-xr-x    2 oradba   oinstall        256 Feb 18 2021  12.1.0
+drwxr-xr-x    3 oradba   oinstall        256 May 21 2018  12.2.0.1
+drwxr-xr-x    2 oradba   oinstall        256 May 26 2022  13.2.0
+drwxr-xr-x    3 oradba   oinstall        256 Jun 16 2021  13.4.0
+drwxr-xr-x    3 oradba   oinstall        256 Jan 21 2024  19.0
+[ushdc8552 oradba TOOLSB]> oe   
+========================================================================================================================
+upgrade timezone commands..
+We had upgraded the TZ on the source DB months back.So it is up to date.
+There was a request to refresh the staging DB using QA data.that time we had upgrade the TZ..
+
+Superb
+ 
+select version from v$timezone_file;
+ 
+Shut down & start upgrade DB
+EXEC DBMS_DST.BEGIN_UPGRADE (n);
+update registry$database set TZ_VERSION = (select version FROM v$timezone_file);
+restart the db normally
+ 
+Shut down & start upgrade DB  EXEC DBMS_DST.BEGIN_UPGRADE (n);  update registry$database set TZ_VERSION = (select version FROM v$timezone_file);  restart the db normally
+
+Steps to upgrade the TZ
 
 
 
