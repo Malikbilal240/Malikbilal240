@@ -4018,6 +4018,609 @@ startup nomount;
 alter database mount standby database;
 =======================================================================
 
+upgrade steps from 12 to 19c....
+
+1.7	Upgrade the Database from 12.2 to 19.3 using Autoupgrade utility:
+
+Upgrade the Database from 12.2 to 19.3 using Autoupgrade tool
+
+
+Download a new autoupgrade tool from the MOS note 2485457.1 to location /u01/app/oracle/product/19.3.0/dbhome_1/rdbms/admin.
+
+The utility required Java 8 to upgrade DB using autoupgrade tool.
+$ORACLE_HOME/jdk/bin/java -version
+
+ 
+
+To get the build date of Autoupgrade tool: $ORACLE_HOME/jdk/bin/java -jar /u01/app/oracle/product/19.3/db_1/rdbms/admin/autoupgrade.jar -version
+
+ 
+
+The autoupgrade utility can be run in a number of different modes:
+
+1. Analyze - Can be run during normal DB operation time. It is read only operation which will help us to know the issue which can occur during upgrade and can prevent from upgrade.
+
+$ORACLE_HOME/jdk/bin/java -jar /u01/app/oracle/product/19.3/db_1/rdbms/admin/autoupgrade.jar -config /oraexp/Oracle_upgrade_19.3/config.txt -mode analyze 
+
+2. Fixup - AutoUpgrade performs the same checks that it also performs in Analyze mode but after completing these pre-upgrade checks it then runs automated fixups of the source database in preparation for the database upgrade.
+
+$ORACLE_HOME/jdk/bin/java -jar /u01/app/oracle/product/19.3/db_1/rdbms/admin/autoupgrade.jar -config /oraexp/Oracle_upgrade_19.3/config.txt -mode fixups 
+
+3. Deploy - the autoupgrade utility performs the actual upgrade of the database as well as also performs a number of post-upgrade steps like recompile invalid objects and timezone DST upgrade among other things.
+
+$ORACLE_HOME/jdk/bin/java -jar /u01/app/oracle/product/19.3/db_1/rdbms/admin/autoupgrade.jar -config /oraexp/Oracle_upgrade_19.3/config.txt -mode deploy -restore_on_fail 
+
+4. Upgrade - To divide the upgrad, run the fixups first then run autoupgradetools in upgrade mode. Post upgrade doesn't take place in this mode.
+
+$ORACLE_HOME/jdk/bin/java -jar /u01/app/oracle/product/19.3/db_1/rdbms/admin/autoupgrade.jar -config /oraexp/Oracle_upgrade_19.3/config.txt  -mode upgrade
+
+
+
+Stages of DB Upgrade:
+ Setup - setup the upgrade job with jobid
+ Preupgrade - It will check system level setting such as disk space and all for DB upgrade
+ Prechecks - it does DB level check for upgrade
+ PREFIXUPS- fixes the prechecks errors/warnings. Such as gathering the statistics
+ Drain - It clear the session. shut down the DB & listener.
+ DBupgrade - Actual DB upgrade takes place & compile the invalid objects
+ Postchecks - checks before starting postupgrade.
+ postfixups - timezone is upgraded 
+ Postupgrades - copy the network files and start the DB from new OH.
+
+
+7.a) Create a configuration file:
+
+[usadc8915 oradba APEXCL1]> vi /oraexp/Oracle_upgrade_19.3/config.txt
+#
+# Global logging directory pertains to all jobs
+#
+global.autoupg_log_dir=/oraexp/Oracle_upgrade_19.3/upgrade_log        # Top level logging directory (Required)[directory where the logs will be saved]
+
+#
+# Database 1
+#
+upg1.dbname=APEXCL1_NDC
+upg1.source_home=/u01/app/oracle/product/12.2.0.1.1910/db_1
+upg1.target_home=/u01/app/oracle/product/19.3/db_1
+upg1.sid=APEXCL1
+upg1.start_time=NOW
+upg1.log_dir=/oraexp/Oracle_upgrade_19.3/upgrade_log/APEXCL1
+upg1.upgrade_node=localhost
+upg1.run_utlrp=yes
+upg1.timezone_upg=yes
+upg1.target_version=19
+
+ 
+
+Parameters for config files:
+
+1) Global - when we use global parameter it is applicable for all the databases.
+2) Local- It is only applicable for particular DBs. Should be mentioned with some prefix. We can give any prefix just to identify
+
+If local & global both paramter are set, then local will be considered as high priority.
+
+With CONFIG file we can use below options:
+1) -clear_recovery_data: Removes the recovery checkpoint to start fresh the next time AutoUpgrade is started. In particular, use this option to run AutoUpgrade so that it discards any previous generated state information.
+2)-console: Enables the AutoUpgrade console, if disabled. The console is enabled by default. The console enables you to submit commands at a terminal to receive details in real time about the jobs that are running, so that you can modify their workflow. For example, from the console, you can abort a job, or restore a given database.
+3) -noconsole: Disables the console. Use the noconsole mode for batch scripting, in which AutoUpgrade commands are run without interaction at the terminal.
+4) -restore_on_fail: Enables the option to restore databases automatically in case of an upgrade failure. This option only applies when AutoUpgrade is run in deploy mode. In other modes, this option is ignored.
+5) -debug: Enables debug level messages in both log files and in terminal output.
+6) -.zip : Creates an archive (zip) file that contains all AutoUpgrade data and log files. We can't use -mode command with this and the zip file will be created at the present directory.
+
+
+7.b) Analyzing the upgrade of the database:
+
+$ORACLE_HOME/jdk/bin/java -jar /u01/app/oracle/product/19.3/db_1/rdbms/admin/autoupgrade.jar -config /oraexp/Oracle_upgrade_19.3/config.txt -mode analyze
+
+When using console, we can run below commands:
+1) help
+2) exit
+3) lsj [(-r|-f-p|-e)|-n number] -> To list the job details.
+4) status jobno
+5) resume -job number
+6) clear
+7) abort -job number
+8) log - > to display log file location.
+ 
+
+ 
+
+7.C) ENABLE FLASHBACK RECOVERY:
+
+SQL> alter system set db_recovery_file_dest_size=20G scope=both;
+
+System altered.
+
+SQL> alter system set db_recovery_file_dest='/oraexp/fra' scope=both;
+
+System altered.
+
+SQL> show parameter db_flashback_retention;
+NAME                                 TYPE        VALUE
+------------------------------------ ----------- ------------------------------
+db_flashback_retention_target        integer     1440
+
+SQL> alter database flashback on;
+
+Database altered.
+
+ 
+
+7.d) Check the SCN number & current timestamp and note it down.
+
+SQL> SQL>
+SQL> select current_scn from v$database;
+
+CURRENT_SCN
+-----------
+  129432124
+
+SQL> select to_char(sysdate,'DD MM YYYY HH24:MI:SS') from dual;
+
+TO_CHAR(SYSDATE,'DD
+-------------------
+03 04 2020 08:48:13
+
+Note: Take RMAN L0 backup of the database and blackout  from OEM.
+
+
+ 
+
+
+7.e)  Move listener from 12.2 OH to 19.3.
+
+Open X-session on No-machine NX client by opening terminal.
+
+Netca
+
+Delete the old listener running from 12.2 Oracle Home.
+
+Change /etc/oratab to point LISTENER_HOME to the 19C Home.
+
+#LISTENER_HOME:/u01/app/oracle/product/19.3/db_1:N
+
+          Source environment to set new LISTENER_HOME:
+          cd
+          . .profile
+
+Run netca from on No-machine NX client
+
+ 
+
+[usadc8915 oradba ORA193]> oe
+-----------------------
+Oracle Environment
+-----------------------
+ORACLE_SID=ORA193
+ORACLE_HOME=/u01/app/oracle/product/19.3/db_1
+AGENT_HOME=/u01/app/oracle/product/13.2.0/agent13c/agent_inst
+LISTENER_HOME=/u01/app/oracle/product/12.2.0.1/db_1
+TNS_ADMIN=/u01/app/oracle/product/12.2.0.1/db_1/network/admin
+TSM_ADMIN=/usr/tivoli/tsm/client/oracle/bin64
+NLS_LANG=AMERICAN_AMERICA.WE8ISO8859P1
+OMS_HOME=
+LIBPATH=/u01/app/oracle/product/19.3/db_1/lib
+ 
+
+ 
+
+
+
+
+7.f) Run fixup command:
+
+$ORACLE_HOME/jdk/bin/java -jar /u01/app/oracle/product/19.3/db_1/rdbms/admin/autoupgrade.jar -config /oraexp/Oracle_upgrade_19.3/config.txt -mode fixups
+
+ 
+
+ 
+
+7.g) Run the Autoupgrade tool in Deploy mode with restore on fail option.
+
+
+$ORACLE_HOME/jdk/bin/java -jar /u01/app/oracle/product/19.3/db_1/rdbms/admin/autoupgrade.jar -config /oraexp/Oracle_upgrade_19.3/config.txt -mode deploy -restore_on_fail
+
+ 
+
+[usadc8915 oradba APEXCL1]> 1/rdbms/admin/autoupgrade.jar -config /oraexp/Oracle_upgrade_19.3/config.txt -mode deploy -restore_on_fail                    <
+AutoUpgrade tool launched with default options
++--------------------------------+
+| Starting AutoUpgrade execution |
++--------------------------------+
+1 databases will be processed
+Type 'help' to list console commands
+upg> lsj
++----+-----------+---------+---------+-------+--------------+--------+--------+--------------+
+|Job#|    DB_NAME|    STAGE|OPERATION| STATUS|    START_TIME|END_TIME| UPDATED|       MESSAGE|
++----+-----------+---------+---------+-------+--------------+--------+--------+--------------+
+| 107|APEXCL1_NDC|PRECHECKS|PREPARING|RUNNING|20/04/03 09:18|     N/A|09:18:43|Remaining 1/71|
++----+-----------+---------+---------+-------+--------------+--------+--------+--------------+
+Total jobs 1
+upg> status
+---------------- Config -------------------
+User configuration file    [/oraexp/Oracle_upgrade_19.3/config.txt]
+General logs location      [/oraexp/Oracle_upgrade_19.3/upgrade_log        # Top level logging directory (Required)[directory where the logs will be saved]/cfgtoollogs/upgrade/auto]
+Mode                       [DEPLOY]
+DB upg fatal errors        ORA-00600,ORA-07445
+DB Post upgrade abort time [60] minutes
+DB upg abort time          [1440] minutes
+DB restore abort time      [120] minutes
+DB GRP abort time          [3] minutes
+------------------------ Jobs ------------------------
+Total databases in configuration file [1]
+Total Non-CDB being processed         [1]
+Total CDB being processed             [0]
+Jobs finished successfully            [0]
+Jobs finished/aborted                 [0]
+Jobs in progress                      [1]
+Jobs stage summary
+    Job ID: 107
+    DB name: APEXCL1_NDC
+        SETUP             <1 min
+        PREUPGRADE        <1 min
+        PRECHECKS         1 min (IN PROGRESS)
+------------ Resources ----------------
+Threads in use                        [78]
+JVM used memory                       [27] MB
+CPU in use                            [13%]
+Processes in use                      [67]
+
+upg> lsj
++----+-----------+---------+---------+-------+--------------+--------+--------+--------------+
+|Job#|    DB_NAME|    STAGE|OPERATION| STATUS|    START_TIME|END_TIME| UPDATED|       MESSAGE|
++----+-----------+---------+---------+-------+--------------+--------+--------+--------------+
+| 107|APEXCL1_NDC|PRECHECKS|PREPARING|RUNNING|20/04/03 09:18|     N/A|09:18:43|Remaining 1/71|
++----+-----------+---------+---------+-------+--------------+--------+--------+--------------+
+Total jobs 1
+upg> -------------------------------------------------
+job 107 has not shown progress in last 10 minutes
+database [APEXCL1_NDC]
+Stage    [PRECHECKS]
+Operation[PREPARING]
+Status   [RUNNING]
+Info     [Remaining 1/71]
+[Review log files for further information]
+-----------------------------------------------
+Logs: /oraexp/Oracle_upgrade_19.3/upgrade_log/APEXCL1/APEXCL1/107
+-----------------------------------------------
+upg>
+upg> lsj
++----+-----------+---------+---------+-------+--------------+--------+--------+---------------+
+|Job#|    DB_NAME|    STAGE|OPERATION| STATUS|    START_TIME|END_TIME| UPDATED|        MESSAGE|
++----+-----------+---------+---------+-------+--------------+--------+--------+---------------+
+| 107|APEXCL1_NDC|PREFIXUPS|EXECUTING|RUNNING|20/04/03 09:18|     N/A|09:32:25|Loading DB info|
++----+-----------+---------+---------+-------+--------------+--------+--------+---------------+
+Total jobs 1
+upg> -------------------------------------------------
+job 107 has not shown progress in last 10 minutes
+database [APEXCL1_NDC]
+Stage    [PREFIXUPS]
+Operation[EXECUTING]
+Status   [RUNNING]
+Info     [Loading DB info]
+[Review log files for further information]
+-----------------------------------------------
+Logs: /oraexp/Oracle_upgrade_19.3/upgrade_log/APEXCL1/APEXCL1/107
+-----------------------------------------------
+upg> lsj
++----+-----------+---------+---------+-------+--------------+--------+--------+-------+
+|Job#|    DB_NAME|    STAGE|OPERATION| STATUS|    START_TIME|END_TIME| UPDATED|MESSAGE|
++----+-----------+---------+---------+-------+--------------+--------+--------+-------+
+| 107|APEXCL1_NDC|DBUPGRADE|EXECUTING|RUNNING|20/04/03 09:18|     N/A|09:44:51|Running|
++----+-----------+---------+---------+-------+--------------+--------+--------+-------+
+Total jobs 1
+upg> lsj
++----+-----------+---------+---------+-------+--------------+--------+--------+------------+
+|Job#|    DB_NAME|    STAGE|OPERATION| STATUS|    START_TIME|END_TIME| UPDATED|     MESSAGE|
++----+-----------+---------+---------+-------+--------------+--------+--------+------------+
+| 107|APEXCL1_NDC|DBUPGRADE|EXECUTING|RUNNING|20/04/03 09:18|     N/A|09:48:04|10%Upgraded |
++----+-----------+---------+---------+-------+--------------+--------+--------+------------+
+Total jobs 1
+upg> lsj
++----+-----------+---------+---------+-------+--------------+--------+--------+------------+
+|Job#|    DB_NAME|    STAGE|OPERATION| STATUS|    START_TIME|END_TIME| UPDATED|     MESSAGE|
++----+-----------+---------+---------+-------+--------------+--------+--------+------------+
+| 107|APEXCL1_NDC|DBUPGRADE|EXECUTING|RUNNING|20/04/03 09:18|     N/A|10:03:18|91%Upgraded |
++----+-----------+---------+---------+-------+--------------+--------+--------+------------+
+Total jobs 1
+upg> lsj
++----+-----------+---------+---------+-------+--------------+--------+--------+-----------+
+|Job#|    DB_NAME|    STAGE|OPERATION| STATUS|    START_TIME|END_TIME| UPDATED|    MESSAGE|
++----+-----------+---------+---------+-------+--------------+--------+--------+-----------+
+| 107|APEXCL1_NDC|DBUPGRADE|EXECUTING|RUNNING|20/04/03 09:18|     N/A|10:07:38|0%Compiled |
++----+-----------+---------+---------+-------+--------------+--------+--------+-----------+
+Total jobs 1
+upg> lsj
++----+-----------+----------+---------+-------+--------------+--------+--------+-------------+
+|Job#|    DB_NAME|     STAGE|OPERATION| STATUS|    START_TIME|END_TIME| UPDATED|      MESSAGE|
++----+-----------+----------+---------+-------+--------------+--------+--------+-------------+
+| 107|APEXCL1_NDC|POSTFIXUPS|EXECUTING|RUNNING|20/04/03 09:18|     N/A|10:12:59|Remaining 3/3|
++----+-----------+----------+---------+-------+--------------+--------+--------+-------------+
+Total jobs 1
+upg> Job 107 completed
+------------------- Final Summary --------------------
+Number of databases            [ 1 ]
+
+Jobs finished successfully     [1]
+Jobs failed                    [0]
+Jobs pending                   [0]
+------------- JOBS FINISHED SUCCESSFULLY -------------
+Job 107 FOR APEXCL1_NDC
+
+---- Drop GRP at your convenience once you consider it is no longer needed ----
+Drop GRP from APEXCL1_NDC: drop restore point null
+
+[usadc8915 oradba APEXCL1]>
+
+ 
+
+  7.h) Check Oracle environment variables:
+
+[usadc8915 oradba APEXCL1]> oe
+-----------------------
+Oracle Environment
+-----------------------
+ORACLE_SID=APEXCL1
+ORACLE_HOME=/u01/app/oracle/product/19.3/db_1
+AGENT_HOME=/u01/app/oracle/product/13.2.0/agent13c/agent_inst
+LISTENER_HOME=/u01/app/oracle/product/12.2.0.1/db_1
+TNS_ADMIN=/u01/app/oracle/product/12.2.0.1/db_1/network/admin
+TSM_ADMIN=/usr/tivoli/tsm/client/oracle/bin64
+NLS_LANG=AMERICAN_AMERICA.WE8ISO8859P1
+OMS_HOME=
+LIBPATH=/u01/app/oracle/product/19.3/db_1/lib
+LD_LIBRARYPATH=/u01/app/oracle/product/19.3/db_1/lib
+ALERT_LOG=/u01/app/oracle/diag/rdbms/apexcl1_ndc/APEXCL1/trace/alert_APEXCL1.log
+
+Create a new Pfile 
+
+SQL> create pfile from spfile;
+
+7.i) Turn Off the flashback:
+
+SQL> select GUARANTEE_FLASHBACK_DATABASE,NAME from v$restore_point;
+
+GUA
+---
+NAME
+--------------------------------------------------------------------------------
+YES
+AUTOUPGRADE_221145114461854_APEXCL1_NDC
+
+
+SQL> select flashback_On from v$database;
+
+FLASHBACK_ON
+------------------
+YES
+
+SQL> alter database flashback off;
+
+Database altered.
+
+SQL> select flashback_On from v$database;
+
+FLASHBACK_ON
+------------------
+RESTORE POINT ONLY
+
+SQL> drop restore point  AUTOUPGRADE_221145114461854_APEXCL1_NDC;
+
+Restore point dropped.
+
+SQL> select flashback_On from v$database;
+
+FLASHBACK_ON
+------------------
+NO
+
+
+7.j) Change compatibility and optimizer_features_enable
+
+SQL> alter system set compatible='19.0.0' scope=spfile;
+
+System altered.
+
+SQL> alter system set optimizer_features_enable='19.1.0’;
+
+System altered.
+
+SQL> shut immediate;
+Database closed.
+Database dismounted.
+ORACLE instance shut down.
+SQL> startup
+ORACLE instance started.
+
+Total System Global Area 4294921672 bytes
+Fixed Size                  9063880 bytes
+Variable Size            2298478592 bytes
+Database Buffers         1979711488 bytes
+Redo Buffers                7667712 bytes
+Database mounted.
+Database opened.
+SQL>
+
+SQL> show parameter compatible
+
+NAME                                 TYPE        VALUE
+------------------------------------ ----------- ------------------------------
+compatible                           string      19.0.0
+noncdb_compatible                    boolean     FALSE
+
+SQL> show parameter optimizer_features_enable
+
+NAME                                 TYPE        VALUE
+------------------------------------ ----------- ------------------------------
+optimizer_features_enable            string      19.1.0
+SQL>
+
+ 
+
+
+Note: Support document for compatible parameter - Doc ID 2610939.1 
+         Support document for optimizer_feature_enable -      https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/OPTIMIZER_FEATURES_ENABLE.html#GUID-E193EC9E-B642-4C01-99EC-24E04AEA1A2C
+
+1.8	Database Release Update patching
+
+Download the latest RU patch and latest version Opatch. 
+
+Stop the listener and shutdown the database.
+
+In this case we are applying Jan 2020 RU patch : p30463595_190000_AIX64-5L.zip.
+
+Copy the RU to /oraexp/EMStage of the server.
+
+ unzip p30463595_190000_AIX64-5L.zip
+
+ cd 30463595
+
+[usadc8915 oradba TOOLSBCL]> cd 30463595
+[usadc8915 oradba TOOLSBCL]> cd 30484981
+[usadc8915 oradba TOOLSBCL]> pwd
+/oraexp/EMStage/30463595/30484981
+[usadc8915 oradba TOOLSBCL]> opatch apply
+
+ 
+
+[usadc8915 oradba TOOLSBCL]> cd ..
+[usadc8915 oradba TOOLSBCL]> ls
+30484981         30557433         PatchSearch.xml  README.html
+[usadc8915 oradba TOOLSBCL]> cd 30557433
+[usadc8915 oradba TOOLSBCL]> opatch apply
+
+ 
+
+[usadc8915 oradba TOOLSBCL]> opatch lsinventory
+
+ 
+
+Start database in upgrade mode:
+
+ 
+
+cd $ORACLE_HOME/OPatch
+./datapatch -verbose
+
+Execute utlrp.sql to compile the invalid objects.
+
+ 
+
+Shutdown and Startup the database in normal mode.
+
+Run below command in SQL prompt to verify if patch has been applied successfully to the database or not:
+
+select action_time,action,status,description , patch_id from DBA_registry_sqlpatch order desc;     
+
+Upgrade the catalog post applying the patch as release version is getting updated when we apply the RU Release update.
+
+      RMAN> upgrade catalog;
+
+      
+
+1.9	Reference Materials
+       9.1 Oracle help centre Document:
+
+                     https://docs.oracle.com/en/database/oracle/oracle-database/19/refrn/index.html
+       
+
+Appendix A  	Revision & Approval History
+
+Rev.
+CMR #	Desc. of Change	Author	Approver	Approved Date
+====================================================================================================================================================
+dbupgrade steps 
+Oracle DB 19c Upgrade Steps
+Upgrading an Oracle Database to version 19c involves several steps. Here is a comprehensive guide to help you through the process:
+
+Pre-Upgrade Steps
+
+1. Check Compatibility:
+    - Ensure your current database version is eligible for a direct upgrade to 19c. Oracle supports direct upgrades from 11.2.0.4, 12.1.0.2, 12.2.0.1, and 18c.
+
+2. Backup Your Database:
+    - Perform a full backup of your database to ensure you can restore it if anything goes wrong during the upgrade process.
+
+3. Check for Deprecated and Desupported Features:
+    - Review the Oracle 19c documentation for deprecated and desupported features to understand the impact on your applications.
+
+4. Run the Pre-Upgrade Information Tool:
+    - Download and run the `preupgrade.jar` tool to identify any issues that need to be addressed before upgrading.
+```bash
+java -jar preupgrade.jar TERMINAL TEXT
+```
+
+5. Resolve Any Issues:
+    - Address any issues identified by the pre-upgrade tool. This may include updating initialization parameters, removing unsupported features, or upgrading components.
+
+Upgrade Steps
+
+1. Install Oracle 19c Software:
+    - Download and install the Oracle 19c software on your server. Do not create a new database during the installation.
+
+2. Prepare the New Oracle Home:
+    - Set up the environment variables to point to the new Oracle 19c home.
+```bash
+export ORACLE_HOME=/path/to/new/oracle19c/home
+export PATH=ORACLE_HOME/bin:PATH
+```
+
+3. Shutdown the Database:
+    - Shutdown the current database instance.
+```sql
+SHUTDOWN IMMEDIATE;
+```
+
+4. Start the Database in Upgrade Mode:
+    - Start the database in upgrade mode using the new Oracle 19c home.
+```sql
+STARTUP UPGRADE;
+```
+
+5. Run the Database Upgrade Utility:
+    - Use the `dbupgrade` utility to upgrade the database.
+```bash
+$ORACLE_HOME/bin/dbupgrade
+```
+
+6. Compile Invalid Objects:
+    - After the upgrade, compile any invalid objects.
+```sql
+@$ORACLE_HOME/rdbms/admin/utlrp.sql
+```
+
+7. Run Post-Upgrade Checks:
+    - Run the `postupgrade_fixups.sql` script to address any post-upgrade issues.
+```sql
+@$ORACLE_HOME/rdbms/admin/postupgrade_fixups.sql
+```
+
+8. Update Configuration Files:
+    - Update the listener.ora and tnsnames.ora files to reflect the new Oracle home.
+
+Post-Upgrade Steps
+
+1. Test the Database:
+    - Thoroughly test your applications to ensure they work correctly with the upgraded database.
+
+2. Backup the Upgraded Database:
+    - Perform a full backup of the upgraded database.
+
+3. Monitor Performance:
+    - Monitor the database performance and make any necessary adjustments to initialization parameters.
+
+Additional Considerations
+
+    - Oracle Data Pump: Consider using Oracle Data Pump for exporting and importing data if a direct upgrade is not possible.
+    - Oracle GoldenGate: For minimal downtime upgrades, Oracle GoldenGate can be used to replicate data to the new version while the old version is still running.
+
+By following these steps, you can successfully upgrade your Oracle Database to version 19c.
+
+
+
+Disclaimer: Output quality is your responsibility and top priority. You are responsible for ensuring the accuracy, completeness, and relevance of any output generated by Sidekick and how it is used. Similar to an internet search, responses from Sidekick may be inaccurate, dated, incomplete, or not aligned to your specific needs. You should thoroughly review all source materials and all outputs from Sidekick to confirm the response is accurate and edit as necessary before sharing them for any purpose.
+===============================================================================================================
+
 
 
 
